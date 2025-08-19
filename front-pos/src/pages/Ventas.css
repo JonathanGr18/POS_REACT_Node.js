@@ -1,0 +1,62 @@
+.ventas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.venta-form-section {
+  background-color: var(--fondo-tarjeta);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.venta-productos-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.venta-col {
+  background-color: var(--fondo-tarjeta);
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.venta-historial-section {
+  background-color: var(--fondo-tarjeta);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.toggle-button {
+  align-self: flex-end;
+  margin-bottom: 1rem;
+  padding: 0.6rem 1.2rem;
+  background-color: var(--fondo-tarjeta);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #333;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.toggle-button:hover {
+  background-color: #f0f0f0;
+  color: #000;
+  transform: scale(1.03);
+}
+
+
+/* Responsive */
+@media (max-width: 900px) {
+  .venta-productos-section {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,23 @@
+.sugerencias {
+  margin-top: 5px;
+  padding: 0;
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  max-height: 150px;
+  overflow-y: auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Quita los puntos de la lista */
+.sugerencias li {
+  list-style: none;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--fondo-borde);
+  transition: background-color 0.2s ease;
+}
+
+.sugerencias li:hover {
+  background-color: var(--fondo-hover);
+}

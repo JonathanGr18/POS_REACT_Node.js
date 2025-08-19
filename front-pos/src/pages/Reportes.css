@@ -1,0 +1,107 @@
+.reportes-calendario {
+  padding: 2rem;
+  background-color: var(--fondo-principal);
+  color: var(--texto-principal);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+h2 {
+  color: var(--boton-primario);
+  margin-bottom: 1.5rem;
+}
+
+/* === Buscador de fecha === */
+.buscador-fecha {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.buscador-fecha input[type="date"] {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--fondo-borde);
+  border-radius: 6px;
+  background-color: var(--fondo-tarjeta);
+  color: var(--texto-principal);
+  font-size: 1rem;
+}
+
+.buscador-fecha button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--boton-secundario);
+  color: var(--texto-invertido);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.buscador-fecha button:hover {
+  background-color: var(--boton-secundario-hover);
+}
+
+/* === Calendario === */
+.grid-calendario {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.calendario-dia {
+  background-color: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+}
+
+.calendario-dia:hover {
+  transform: translateY(-3px);
+}
+
+.dia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--boton-primario);
+  margin-bottom: 0.5rem;
+}
+
+.ventas-detalle {
+  border-top: 1px solid var(--fondo-borde);
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.venta-item {
+  background-color: var(--fondo-hover);
+  padding: 0.5rem;
+  margin-bottom: 0.4rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.venta-item button {
+  background: var(--boton-exito);
+  border: none;
+  border-radius: 4px;
+  color: var(--texto-invertido);
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.venta-item button:hover {
+  background-color: var(--boton-exito-hover);
+}

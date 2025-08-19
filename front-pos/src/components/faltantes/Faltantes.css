@@ -1,0 +1,11 @@
+.faltantes-container {
+  padding: 2rem;
+  background-color: var(--fondo-principal);
+  color: var(--texto-principal);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.btn-mini {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}

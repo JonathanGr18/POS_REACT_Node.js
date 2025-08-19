@@ -1,0 +1,267 @@
+/* ======== Colores base ======== */
+:root {
+  /* ======= Colores base ======= */
+  --color-blanco: #ffffff;
+  --color-negro: #2c3e50;
+
+  /* ======= Fondo general ======= */
+  --fondo-principal: #f8f9fa;
+  --fondo-tarjeta: #ffffff;
+  --fondo-hover: #f1f1f1;
+  --fondo-borde: #ddd;
+
+  /* ======= Textos ======= */
+  --texto-principal: #2c3e50;
+  --texto-secundario: #7f8c8d;
+  --texto-invertido: #ffffff;
+
+  /* ======= Botones ======= */
+  --boton-primario: #9967CE;
+  --boton-primario-hover: #7c4cb5;
+  
+  --boton-secundario: #BA9CF6;
+  --boton-secundario-hover: #a987e2;
+
+  --boton-exito: #18bc9c;
+  --boton-exito-hover: #149174;
+
+  --boton-peligro: #e74c3c;
+  --boton-peligro-hover: #c0392b;
+
+  /* ======= Tablas ======= */
+  --tabla-encabezado: #9967CE;
+  --tabla-hover-fila: #f1f1f1;
+  --tabla-borde: #ddd;
+
+  /* ======= Navbar ======= */
+  --navbar-fondo: #BA9CF6;
+  --navbar-texto: #ffffff;
+  --navbar-hover: #9967CE;
+
+  /* ======= Etiquetas y estados ======= */
+  --estado-verde: #27ae60;
+  --estado-naranja: #f39c12;
+  --estado-rojo: #e74c3c;
+}
+
+/* ======== Reset ======== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ======== Tipografía y base ======== */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  line-height: 1.6;
+}
+
+/* ======== Botones reutilizables ======== */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--texto-invertido);
+}
+
+.btn-primary {
+  background-color: var(--boton-primario);
+}
+.btn-primary:hover {
+  background-color: var(--boton-primario-hover);
+}
+
+.btn-secondary {
+  background-color: var(--boton-secundario);
+}
+.btn-secondary:hover {
+  background-color: var(--boton-secundario-hover);
+}
+
+.btn-success {
+  background-color: var(--boton-exito);
+}
+.btn-success:hover {
+  background-color: var(--boton-exito-hover);
+}
+
+.btn-danger {
+  background-color: var(--boton-peligro);
+}
+.btn-danger:hover {
+  background-color: var(--boton-peligro-hover);
+}
+
+/* ======== Tablas ======== */
+.tabla-responsive {
+  overflow-x: auto;
+  width: 100%;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--fondo-borde);
+  background-color: var(--fondo-tarjeta);
+  padding: 0.5rem;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  background-color: var(--fondo-tarjeta);
+}
+
+.tabla th {
+  background-color: var(--tabla-encabezado);
+  color: var(--texto-invertido);
+  padding: 12px;
+  text-align: left;
+}
+
+.tabla td {
+  padding: 10px;
+  border-bottom: 1px solid var(--tabla-borde);
+  color: var(--texto-principal);
+}
+
+.tabla tbody tr:hover {
+  background-color: var(--tabla-hover-fila);
+}
+
+
+/* ======== Formularios ======== */
+.input {
+  padding: 10px;
+  border: 1px solid var(--fondo-borde);
+  border-radius: 6px;
+  font-size: 16px;
+  width: 100%;
+  margin-bottom: 12px;
+  color: var(--texto-principal);
+  background-color: var(--fondo-tarjeta);
+}
+
+.input:focus {
+  border-color: var(--boton-primario);
+  outline: none;
+  box-shadow: 0 0 3px var(--boton-primario);
+}
+
+/* ======== Status ======== */
+.status {
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  display: inline-block;
+  text-align: center;
+}
+
+.status-verde {
+  background-color: var(--estado-verde);
+  color: var(--texto-invertido);
+}
+
+.status-naranja {
+  background-color: var(--estado-naranja);
+  color: var(--texto-invertido);
+}
+
+.status-rojo {
+  background-color: var(--estado-rojo);
+  color: var(--texto-invertido);
+}
+
+/* ======== Navbar ======== */
+.navbar {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--navbar-fondo);
+  color: var(--navbar-texto);
+}
+
+.navbar a {
+  color: var(--navbar-texto);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.navbar a:hover {
+  color: var(--navbar-hover);
+}
+
+/* ======== Mejoras a Inputs ======== */
+textarea.input {
+  resize: vertical;
+  min-height: 80px;
+}
+
+select.input {
+  padding: 8px;
+}
+
+/* ======== Botones con íconos (útiles en tablas) ======== */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* ======== Tabla sin datos ======== */
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: var(--texto-secundario);
+  font-style: italic;
+}
+
+/* ======== Estilos para sugerencias (InputBusqueda) ======== */
+.sugerencias {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--tabla-borde);
+  background: white;
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+  max-height: 150px;
+  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.sugerencias li {
+  padding: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--texto-principal);
+}
+
+.sugerencias li:hover {
+  background-color: var(--tabla-hover-fila);
+}
+
+/* ======== Fondo general mejorado ======== */
+body {
+  background-color: var(--fondo-principal);
+}
