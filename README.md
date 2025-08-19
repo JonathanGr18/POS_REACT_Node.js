@@ -28,6 +28,25 @@ Este es un **Sistema de Punto de Venta (POS)** desarrollado como proyecto person
 - ✅ Tablas ordenables y responsivas  
 - ✅ Diseño para escritorio con estilo limpio y adaptable
 
+## 📸 Capturas del sistema
+
+### 🛒 Vista de Productos
+![Productos_1](./screenshots/Productos_1.png)
+![Productos_2](./screenshots/Productos_2.png)
+
+### 💳 Vista de Ventas
+![Ventas](./screenshots/Ventas.png)
+
+### 📊 Vista de Reportes
+![Reportes](./screenshots/Reportes.png)
+
+### ⚠️ Vista de Faltantes
+![Faltantes](./screenshots/Faltantes.png)
+
+### 📄 Generación de PDF en Faltantes
+![FaltantesPDF](./screenshots/FaltantesPDF.png)
+
+
 ## 👤 Autor
 
 **Jonathan Gr**  
