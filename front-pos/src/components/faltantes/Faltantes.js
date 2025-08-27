@@ -12,9 +12,15 @@ const Faltantes = () => {
   const [ascendente, setAscendente] = useState(true);
 
   useEffect(() => {
-    axios.get('/api/productos/faltantes')
-      .then(res => setProductos(res.data))
-      .catch(err => console.error('Error al obtener productos faltantes:', err));
+  axios.get('http://localhost:5000/api/productos/faltantes')
+    .then(res => {
+      const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      setProductos(data);
+    })
+    .catch(err => {
+      console.error('Error al obtener productos faltantes:', err);
+      setProductos([]);
+    });
   }, []);
 
   const exportarPDF = () => {

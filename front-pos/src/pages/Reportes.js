@@ -13,28 +13,28 @@ const Reportes = () => {
   }, []);
 
   const obtenerResumenDias = async () => {
-    const res = await api.get('/reportes/dias');
+    const res = await api.get('http://localhost:5000/api/reportes/dias');
     setResumenDias(res.data);
   };
 
   const toggleDetalleDia = async (fecha) => {
     if (ventasPorDia[fecha]) {
-      // Si ya está abierto, lo cerramos
+      // Si esta abierto se cierra
       setVentasPorDia(prev => {
         const copia = { ...prev };
         delete copia[fecha];
         return copia;
       });
     } else {
-      // Si está cerrado, lo abrimos
-      const res = await api.get(`/reportes/detalle/${fecha}`);
+      // Si está cerrado se abre
+      const res = await api.get(`http://localhost:5000/api/reportes/detalle/${fecha}`);
       setVentasPorDia(prev => ({ ...prev, [fecha]: res.data }));
     }
   };
   
    const buscarPorFecha = async () => {
    if (!fechaBusqueda) return;
-   const res = await api.get(`/reportes/buscar/${fechaBusqueda}`);
+   const res = await api.get(`http://localhost:5000/api/reportes/buscar/${fechaBusqueda}`);
    setVentasPorDia({ [fechaBusqueda]: res.data });
    setResumenDias([{ dia: fechaBusqueda, total_dia: res.data.reduce((acc, v) => acc + parseFloat(v.total), 0) }]);
    };

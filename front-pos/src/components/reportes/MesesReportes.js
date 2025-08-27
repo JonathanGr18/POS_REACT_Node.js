@@ -22,7 +22,7 @@ const MesesReportes = () => {
 
   // Obtener resumen de ventas por día (una sola vez)
   useEffect(() => {
-    axios.get('/api/reportes/dias')
+    axios.get('http://localhost:5000/api/reportes/dias')
       .then(res => setResumenDias(res.data))
       .catch(err => {
         console.error('Error al obtener resumen diario:', err);
@@ -36,8 +36,8 @@ const MesesReportes = () => {
     setError('');
 
     Promise.all([
-      axios.get(`/api/reportes/mensual/${mesSeleccionado}`),
-      axios.get(`/api/reportes/dias-no-abiertos/${mesSeleccionado}`)
+      axios.get(`http://localhost:5000/api/reportes/mensual/${mesSeleccionado}`),
+      axios.get(`http://localhost:5000/api/reportes/dias-no-abiertos/${mesSeleccionado}`)
     ])
     .then(([resMes, resDias]) => {
       const { ingresos, egresos, ganancia } = resMes.data;
