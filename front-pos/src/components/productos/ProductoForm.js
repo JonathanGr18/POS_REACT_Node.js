@@ -11,7 +11,6 @@ const ProductoForm = ({ onSubmit, productoSeleccionado, productos = [] }) => {
       setForm(productoSeleccionado);
       setModoEdicion(true);
     } else {
-      // Generar nuevo código automático basado en el número de productos existentes
       const codigosExistentes = productos.map(p => parseInt(p.codigo)).filter(c => !isNaN(c));
       let nuevoCodigo = 1;
       while (codigosExistentes.includes(nuevoCodigo)) {

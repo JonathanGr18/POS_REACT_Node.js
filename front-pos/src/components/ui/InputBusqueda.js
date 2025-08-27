@@ -1,6 +1,4 @@
-// components/ui/InputBusqueda.js
 import React from 'react';
-// import './InputBusqueda.css'; // puedes crear este css si quieres darle estilo
 
 const InputBusqueda = ({ value, onChange, sugerencias = [], onSeleccionar, placeholder = 'Buscar...' }) => {
   return (

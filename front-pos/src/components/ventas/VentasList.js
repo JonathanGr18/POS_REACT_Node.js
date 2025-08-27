@@ -1,4 +1,4 @@
-// components/VentasList.js
+// components
 import React from 'react';
 import './VentasList.css';
 

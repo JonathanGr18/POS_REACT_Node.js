@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Productos.css'; // o el que uses
+import './Productos.css';
 import api from '../services/api';
 
 // Componentes
@@ -56,7 +56,7 @@ const Productos = () => {
     cargarProductos();
   };
 
-  // 🔍 Filtrar y ordenar
+  // Filtrar y ordenar
   let filtrados = productos.filter(p =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     p.descripcion.toLowerCase().includes(busqueda.toLowerCase())
@@ -80,7 +80,7 @@ const Productos = () => {
     return ascendente ? resultado : -resultado;
   });
 
-  // 🔒 Bloque de acceso
+  // Bloque de acceso
   if (!autorizado) {
     return (
       <div className="productos-acceso">
