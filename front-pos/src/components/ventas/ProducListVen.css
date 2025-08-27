@@ -59,3 +59,15 @@
   text-align: left;
 }
 
+.button-primary{
+  padding: 6px 10px;
+  background-color: var(--boton-secundario);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.button-primary:hover{
+  background-color: var(--boton-primario);
+}
