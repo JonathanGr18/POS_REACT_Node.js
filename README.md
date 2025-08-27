@@ -54,6 +54,6 @@ Desarrollador Web Full Stack
 GitHub: [JonathanGr18](https://github.com/JonathanGr18)
 
 ## 📝 Licencia
+Este proyecto está protegido bajo la licencia [Creative Commons BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).  
+Puedes compartirlo y adaptarlo con atribución, pero no para fines comerciales.
 
-Este proyecto fue desarrollado con fines educativos y personales.  
-Puedes usarlo, adaptarlo o extenderlo libremente. Se recomienda citar al autor en proyectos derivados.
