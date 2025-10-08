@@ -13,7 +13,7 @@ const Productos = () => {
   const [autorizado, setAutorizado] = useState(false);
   const [password, setPassword] = useState('');
 
-  const claveAcceso = 'admin'; // Seguridad básica
+  const claveAcceso = 'admin'; 
 
   const verificarPassword = () => {
     if (password === claveAcceso) {
@@ -57,10 +57,22 @@ const Productos = () => {
   };
 
   // Filtrar y ordenar
-  let filtrados = productos.filter(p =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.descripcion.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const valor = busqueda.trim().toLowerCase();
+  const esNumero = !isNaN(Number(valor));
+
+  let filtrados = productos.filter(p => {
+    if (esNumero) {
+      const codigoExacto = Number(p.codigo) === Number(valor); // coincidencia exacta
+      const codigoSugerencia = p.codigo.toString().startsWith(valor); // sugerencia
+      return codigoExacto || codigoSugerencia;
+    } else {
+      return (
+        p.nombre.toLowerCase().includes(valor) ||
+        p.descripcion?.toLowerCase().includes(valor)
+      );
+    }
+  });
+
 
   if (estadoFiltro !== 'todos') {
     filtrados = filtrados.filter(p => {
@@ -70,6 +82,7 @@ const Productos = () => {
       return true;
     });
   }
+
 
   filtrados.sort((a, b) => {
     let resultado = 0;

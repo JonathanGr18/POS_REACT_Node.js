@@ -119,11 +119,7 @@ const Reportes = () => {
           <h2>Papeleria Amistad</h2>
           <div class="direccion">
             Calle De la amistad #1414<br>
-<<<<<<< HEAD
             Col. VillasPerisur, Zapopan, Jal.<br>
-=======
-            Col. Villas Perisur, Zapopan, Jal.<br>
->>>>>>> 0423949a6e9463fb24a6a377b2310e309be8e491
             WhatsApp. 33-4514-4736
           </div>
 
@@ -187,7 +183,7 @@ const Reportes = () => {
 
    return (
     <div className="reportes-calendario">
-      <h2>📅 Reportes (últimos 30 días)</h2>
+      <h2>📅 Reportes (últimos 28 días)</h2>
       <div className="buscador-fecha">
       <input
          type="date"

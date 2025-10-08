@@ -6,13 +6,27 @@ const ProductoListVenta = ({ productos = [], onSelect }) => {
   const [orden, setOrden] = useState('nombre');
   const [ascendente, setAscendente] = useState(true);
 
+  const valor = searchTerm.trim().toLowerCase();
+  const esNumero = !isNaN(Number(valor));
   const productosFiltrados = productos
-    .filter((producto) => producto.stock > 0)
-    .filter((producto) =>
-      producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      producto.codigo.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  .filter((producto) => producto.stock > 0)
+  .filter((producto) => {
+    if (!valor) return true; // si no hay búsqueda, mostrar todo
+    if (esNumero) {
+      // buscar coincidencia exacta en código
+      const codigoExacto = Number(producto.codigo) === Number(valor);
+      // sugerencias: mostrar si el código contiene el valor como substring
+      const codigoSugerencia = producto.codigo.toString().startsWith(valor);
+      return codigoExacto || codigoSugerencia;
+    } else {
+      // buscar coincidencias en nombre o descripción
+      return (
+        producto.nombre.toLowerCase().includes(valor) ||
+        producto.descripcion?.toLowerCase().includes(valor)
+      );
+    }
+  });
+
 
   productosFiltrados.sort((a, b) => {
     let resultado = 0;

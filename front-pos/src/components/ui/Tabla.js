@@ -1,5 +1,5 @@
 import React from 'react';
-// import './Tabla.css'; // si necesitas estilos adicionales
+import './Tabla.css';
 
 const Tabla = ({ columnas = [], datos = [], renderFila }) => {
   return (

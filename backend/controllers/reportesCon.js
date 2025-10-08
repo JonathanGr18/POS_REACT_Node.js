@@ -8,7 +8,7 @@ exports.obtenerResumenDias = async (req, res) => {
       FROM ventas
       GROUP BY dia
       ORDER BY dia DESC
-      LIMIT 30
+      LIMIT 28
     `);
     res.json(result.rows);
   } catch (error) {

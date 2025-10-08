@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import VentaForm from '../components/ventas/VentaForm';
 import HistorialVentas from '../components/ventas/VentasList';
-import Boton from '../components/ui/Boton';
 import './Ventas.css';
 
 const Ventas = () => {
@@ -22,10 +21,8 @@ const Ventas = () => {
     };
 
     fetchData();
-<<<<<<< HEAD
   }, [verReportes]); // ✅ Ahora depende solo de verReportes
-=======
-  }, [verReportes]); 
+
 
   const cargarProductos = async () => {
     const res = await api.get('/productos');
