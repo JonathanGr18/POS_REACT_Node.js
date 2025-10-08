@@ -75,11 +75,7 @@ const generarHTMLTicket = (venta) => {
           <h2>Papeleria Amistad</h2>
           <div class="direccion">
             Calle De la amistad #1414<br>
-<<<<<<< HEAD
             Col. VillasPerisur, Zapopan, Jal.<br>
-=======
-            Col. Villas Perisur, Zapopan, Jal.<br>
->>>>>>> 0423949a6e9463fb24a6a377b2310e309be8e491
             WhatsApp. 33-4514-4736
           </div>
 
@@ -95,11 +91,7 @@ const generarHTMLTicket = (venta) => {
               <tr>
                 <th>Cant</th>
                 <th>Producto</th>
-<<<<<<< HEAD
                 <th>Desc</th>
-=======
-                <th>Descrip.</th>
->>>>>>> 0423949a6e9463fb24a6a377b2310e309be8e491
                 <th style="text-align: right;">Precio</th>
               </tr>
             </thead>
@@ -110,11 +102,7 @@ const generarHTMLTicket = (venta) => {
                     <td>${p.cantidad}</td>
                     <td>${p.producto}</td>
                     <td>${p.descripcion || '-'}</td>
-<<<<<<< HEAD
                     <td style="text-align: right;">$${(p.precio * p.cantidad).toFixed(2)}</td>
-=======
-                    <td style="text-align: right;">$${p.precio}</td>
->>>>>>> 0423949a6e9463fb24a6a377b2310e309be8e491
                   </tr>
                 `)
                 .join('')}
