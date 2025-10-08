@@ -22,7 +22,11 @@ const Ventas = () => {
     };
 
     fetchData();
+<<<<<<< HEAD
   }, [verReportes]); // ✅ Ahora depende solo de verReportes
+=======
+  }, [verReportes]); 
+>>>>>>> 0423949a6e9463fb24a6a377b2310e309be8e491
 
   const cargarProductos = async () => {
     const res = await api.get('/productos');
