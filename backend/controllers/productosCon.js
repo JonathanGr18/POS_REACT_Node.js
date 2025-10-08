@@ -67,11 +67,7 @@ exports.obtenerFaltantes = async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT * FROM productos
-<<<<<<< HEAD
       WHERE stock <= 15
-=======
-      WHERE stock <= 5
->>>>>>> 0423949a6e9463fb24a6a377b2310e309be8e491
       ORDER BY stock ASC
     `);
     res.json(result.rows);
