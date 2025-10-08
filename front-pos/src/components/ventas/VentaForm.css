@@ -1,0 +1,79 @@
+.productos-grid {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.columna-productos-disponibles,
+.columna-productos-seleccionados {
+  flex: 1;
+  min-width: 300px;
+}
+
+/* Tabla con scroll vertical para productos seleccionados */
+.tabla-scroll-seleccionados {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.tabla-scroll-seleccionados table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-scroll-seleccionados th,
+.tabla-scroll-seleccionados td {
+  padding: 8px;
+  border-bottom: 1px solid var(--fondo-borde);
+  text-align: center;
+}
+
+/* Botones cantidad */
+.plus-minus-btn {
+  padding: 4px 8px;
+  background-color: var(--boton-secundario);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.eliminar-btn {
+  background-color: var(--boton-peligro);
+  color: white;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.registrar-venta-btn {
+  padding: 10px 16px;
+  background-color: var(--boton-exito);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.columna-productos-disponibles,
+.columna-productos-seleccionados {
+  flex: 1;
+  min-width: 300px;
+  padding: 1rem;
+  border-radius: 12px;
+  background-color: var(--fondo-tarjeta);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.403); /* Sombra suave */
+  transition: box-shadow 0.3s ease;
+}
+
+.columna-productos-disponibles:hover,
+.columna-productos-seleccionados:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); /* Sombra más fuerte al pasar el mouse */
+}

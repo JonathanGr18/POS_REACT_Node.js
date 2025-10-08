@@ -1,0 +1,90 @@
+.tabla-productos {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background-color: var(--fondo-tarjeta);
+  min-width: 700px;
+}
+
+.tabla-productos th {
+  background-color: var(--tabla-encabezado);
+  color: white;
+  padding: 12px;
+  text-align: left;
+}
+
+.tabla-productos td {
+  padding: 10px;
+  border-bottom: 1px solid var(--tabla-borde);
+  color: var(--texto-principal);
+  vertical-align: top;
+}
+
+.tabla-productos tbody tr:hover {
+  background-color: var(--tabla-hover-fila);
+}
+
+.button-primary,
+.button-delete {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background-color 0.2s;
+}
+
+.button-primary {
+  background-color: var(--boton-primario);
+  color: white;
+}
+.button-primary:hover {
+  background-color: var(--boton-primario-hover);
+}
+
+.button-delete {
+  background-color: var(--boton-peligro);
+  color: white;
+}
+.button-delete:hover {
+  background-color: var(--boton-peligro-hover);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-edit {
+  background-color: var(--boton-primario);
+  color: white;
+}
+.btn-edit:hover {
+  background-color: var(--boton-primario-hover);
+}
+
+.btn-delete {
+  background-color: var(--boton-peligro);
+  color: white;
+}
+.btn-delete:hover {
+  background-color: var(--boton-peligro-hover);
+}
+
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: var(--texto-secundario);
+  font-style: italic;
+}

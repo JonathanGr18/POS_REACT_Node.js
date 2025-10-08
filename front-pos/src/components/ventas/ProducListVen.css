@@ -1,0 +1,73 @@
+.filtros-busqueda {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.input-busqueda,
+.filtros-busqueda select {
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid var(--fondo-borde);
+  background-color: var(--fondo-tarjeta);
+  color: var(--texto-principal);
+  flex: 1;
+  min-width: 160px;
+}
+
+.btn-orden {
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: var(--boton-secundario);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-orden:hover {
+  background-color: var(--boton-secundario-hover);
+}
+
+.tabla-scroll-limitada {
+  max-height: 290px; /* para mostrar 5 filas aprox. */
+  overflow-y: auto;
+  border: 1px solid var(--fondo-borde);
+  border-radius: 8px;
+  background-color: var(--fondo-tarjeta);
+}
+
+.tabla-scroll-limitada table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-scroll-limitada thead th {
+  position: sticky;
+  top: 0;
+  background-color: var(--tabla-encabezado);
+  color: white;
+  z-index: 1;
+}
+
+.tabla-productos th,
+.tabla-productos td {
+  padding: 10px;
+  border-bottom: 1px solid var(--fondo-borde);
+  text-align: left;
+}
+
+.button-primary{
+  padding: 6px 10px;
+  background-color: var(--boton-secundario);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.button-primary:hover{
+  background-color: var(--boton-primario);
+}

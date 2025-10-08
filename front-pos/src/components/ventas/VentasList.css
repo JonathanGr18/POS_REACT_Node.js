@@ -1,0 +1,111 @@
+.venta-list-container {
+  background: var(--fondo-tarjeta);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  color: var(--texto-principal);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.venta-list-container h3 {
+  font-size: 20px;
+  border-bottom: 2px solid var(--boton-primario);
+  padding-bottom: 5px;
+  margin-bottom: 1rem;
+}
+
+/* Aplicado directamente a la tabla */
+.venta-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.venta-table thead {
+  position: sticky;
+  top: 0;
+  background-color: var(--tabla-encabezado);
+  color: white;
+  z-index: 1;
+}
+
+.venta-table th,
+.venta-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--fondo-borde);
+  text-align: left;
+  vertical-align: top;
+}
+
+.venta-productos {
+  list-style: none;
+  padding-left: 1rem;
+  margin: 0;
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.no-data {
+  text-align: center;
+  color: var(--texto-secundario);
+  font-style: italic;
+  padding: 20px;
+}
+
+.btn-imprimir,
+.btn-guardar {
+  padding: 6px 10px;
+  margin: 2px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-imprimir {
+  background-color: var(--boton-secundario);
+  color: white;
+}
+
+.btn-imprimir:hover {
+  background-color: var(--boton-secundario-hover);
+}
+
+.btn-guardar {
+  background-color: var(--boton-primario);
+  color: white;
+}
+
+.btn-guardar:hover {
+  background-color: var(--boton-primario-hover);
+}
+
+.btn-ver {
+  background-color: var(--boton-secundario);
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.btn-ver:hover {
+  background-color: var(--boton-secundario-hover);
+}
+
+.btn-enviar {
+  background-color: var(--boton-primario);
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-enviar:hover {
+  background-color: var(--boton-primario-hover);
+}
