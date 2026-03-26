@@ -19,3 +19,4 @@ build/
 # BD local
 estructura.sql
 backup.sql
+backend/migrations/datos_iniciales.sql
