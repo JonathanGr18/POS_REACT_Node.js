@@ -42,6 +42,12 @@
   --estado-verde: #27ae60;
   --estado-naranja: #f39c12;
   --estado-rojo: #e74c3c;
+
+  /* ======= Alias de compatibilidad ======= */
+  --color-primario: #9967CE;
+  --stock-rojo: #e74c3c;
+  --stock-naranja: #f39c12;
+  --stock-verde: #27ae60;
 }
 
 /* ======== Reset ======== */
@@ -54,8 +60,8 @@
 /* ======== Tipografía y base ======== */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--color-fondo);
-  color: var(--color-texto);
+  background-color: var(--fondo-principal);
+  color: var(--texto-principal);
   line-height: 1.6;
 }
 
@@ -240,7 +246,7 @@ select.input {
   padding: 0;
   margin: 0;
   border: 1px solid var(--tabla-borde);
-  background: white;
+  background: var(--fondo-tarjeta);
   position: absolute;
   width: 100%;
   z-index: 10;
@@ -261,7 +267,78 @@ select.input {
   background-color: var(--tabla-hover-fila);
 }
 
+/* ======== Contenedor para InputBusqueda con sugerencias posicionadas ======== */
+.input-busqueda-container {
+  position: relative;
+  width: 100%;
+}
+
+/* ======== Formulario genérico de secciones (Egresos, Resurtir) ======== */
+.formulario-producto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+}
+
+/* ======== Página wrapper de Faltantes ======== */
+.pagina-faltantes {
+  padding: 1rem;
+}
+
 /* ======== Fondo general mejorado ======== */
 body {
   background-color: var(--fondo-principal);
+}
+
+/* ======== Dark Mode ======== */
+[data-theme="dark"] {
+  --fondo-principal: #1a1a2e;
+  --fondo-tarjeta: #16213e;
+  --fondo-hover: #0f3460;
+  --fondo-borde: #2d3561;
+
+  --texto-principal: #e0e0e0;
+  --texto-secundario: #a0a0b0;
+  --texto-invertido: #ffffff;
+
+  --tabla-encabezado: #7c4cb5;
+  --tabla-hover-fila: #0f3460;
+  --tabla-borde: #2d3561;
+
+  --navbar-fondo: #16213e;
+  --navbar-texto: #e0e0e0;
+  --navbar-hover: #7c4cb5;
+
+  --boton-primario: #7c4cb5;
+  --boton-primario-hover: #9967CE;
+
+  --boton-secundario: #7c4cb5;
+  --boton-secundario-hover: #9967CE;
+
+  --boton-exito: #16a085;
+  --boton-exito-hover: #1abc9c;
+
+  --boton-peligro: #c0392b;
+  --boton-peligro-hover: #e74c3c;
+
+  --estado-verde: #27ae60;
+  --estado-naranja: #e67e22;
+  --estado-rojo: #c0392b;
+
+  --color-primario: #7c4cb5;
+}
+
+/* ======== Dark Mode Toggle Button ======== */
+.btn-dark-toggle {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.btn-dark-toggle:hover {
+  background: var(--fondo-hover);
 }

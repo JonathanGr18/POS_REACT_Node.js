@@ -1,0 +1,85 @@
+.ghp-card {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.ghp-titulo {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.ghp-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+  flex: 1;
+}
+
+.ghp-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  min-width: 0;
+}
+
+.ghp-barra-wrap {
+  width: 100%;
+  height: 90px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.ghp-barra {
+  width: 100%;
+  background: var(--boton-secundario);
+  border-radius: 4px 4px 0 0;
+  opacity: 0.65;
+  transition: opacity 0.2s;
+}
+
+.ghp-barra--pico {
+  background: var(--boton-primario);
+  opacity: 1;
+}
+
+.ghp-barra:hover { opacity: 1; }
+
+.ghp-label {
+  font-size: 0.62rem;
+  color: var(--texto-secundario);
+  white-space: nowrap;
+}
+
+.ghp-label--pico {
+  color: var(--boton-primario);
+  font-weight: 700;
+}
+
+.ghp-pico-badge {
+  position: absolute;
+  top: -18px;
+  background: var(--boton-primario);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.ghp-nota {
+  margin: 8px 0 0;
+  font-size: 0.72rem;
+  color: var(--texto-secundario);
+  text-align: center;
+}

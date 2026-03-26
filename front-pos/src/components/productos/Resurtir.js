@@ -1,58 +1,62 @@
-// components/ResurtirForm.js
 import React, { useState } from 'react';
 import InputBusqueda from '../ui/InputBusqueda';
 import api from '../../services/api';
+import { useToast } from '../ui/Toast';
 
 const ResurtirProductoForm = ({ productos = [], onResurtir }) => {
+  const { addToast } = useToast();
   const [busqueda, setBusqueda] = useState('');
   const [cantidad, setCantidad] = useState('');
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [cargando, setCargando] = useState(false);
 
   const handleBuscar = (e) => {
     setBusqueda(e.target.value);
-    const resultado = productos.find(p =>
-      p.codigo.toLowerCase() === e.target.value.toLowerCase() ||
-      p.nombre.toLowerCase() === e.target.value.toLowerCase()
+    const valor = e.target.value.toLowerCase();
+    // Primero busca coincidencia exacta; si no hay, limpia la selección
+    // (la selección final se hace siempre mediante onSeleccionar en el dropdown)
+    const exacto = productos.find(p =>
+      p?.codigo?.toString().toLowerCase() === valor ||
+      p?.nombre?.toLowerCase() === valor
     );
-    setProductoSeleccionado(resultado || null);
+    setProductoSeleccionado(exacto || null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!productoSeleccionado) {
-      alert('Selecciona un producto válido');
+      addToast('Selecciona un producto válido', 'aviso');
       return;
     }
 
-    if (cantidad <= 0) {
-      alert('La cantidad debe ser mayor a cero');
+    if (!cantidad || parseInt(cantidad) <= 0) {
+      addToast('La cantidad debe ser mayor a cero', 'aviso');
       return;
     }
 
+    setCargando(true);
     try {
       await api.put(`/productos/resurtir/${productoSeleccionado.id}`, {
         cantidad: parseInt(cantidad)
       });
 
-      alert('Producto resurtido correctamente');
-
-      // Limpia y actualiza
-      onResurtir(); // Actualiza lista de productos
+      addToast(`"${productoSeleccionado.nombre}" resurtido correctamente (+${cantidad})`, 'exito');
+      onResurtir();
+    } catch (err) {
+      console.error('Error al resurtir producto:', err);
+      addToast('Error al resurtir producto', 'error');
+    } finally {
+      setCargando(false);
       setBusqueda('');
       setCantidad('');
       setProductoSeleccionado(null);
-
-    } catch (err) {
-      console.error('Error al resurtir producto:', err);
-      alert('Error al resurtir producto');
     }
   };
 
-
   const sugerencias = productos.filter(p =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.codigo.toLowerCase().includes(busqueda.toLowerCase())
+    p?.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    (p?.codigo || '').toString().toLowerCase().includes(busqueda.toLowerCase())
   ).slice(0, 5);
 
   return (
@@ -78,7 +82,9 @@ const ResurtirProductoForm = ({ productos = [], onResurtir }) => {
           min="1"
         />
 
-        <button type="submit" className="btn btn-success">✔️ Resurtir</button>
+        <button type="submit" className="btn btn-success" disabled={cargando}>
+          {cargando ? 'Resurtiendo...' : '✔️ Resurtir'}
+        </button>
       </form>
     </div>
   );

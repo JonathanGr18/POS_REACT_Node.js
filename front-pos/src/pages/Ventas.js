@@ -2,68 +2,114 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import VentaForm from '../components/ventas/VentaForm';
 import HistorialVentas from '../components/ventas/VentasList';
+import Spinner from '../components/ui/Spinner';
+import { useToast } from '../components/ui/Toast';
 import './Ventas.css';
 
 const Ventas = () => {
+  const { addToast } = useToast();
   const [productos, setProductos] = useState([]);
   const [ventas, setVentas] = useState([]);
   const [verReportes, setVerReportes] = useState(false);
-  const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [mostrarHistorial, setMostrarHistorial] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const resProductos = await api.get('/productos');
-      setProductos(resProductos.data);
-
-      const ruta = verReportes ? '/ventas' : '/ventas/hoy';
-      const resVentas = await api.get(ruta);
-      setVentas(resVentas.data);
+      setCargando(true);
+      try {
+        const resProductos = await api.get('/productos');
+        setProductos(resProductos.data);
+      } catch {
+        addToast('Error al cargar productos', 'error');
+      } finally {
+        setCargando(false);
+      }
     };
-
     fetchData();
-  }, [verReportes]); // ✅ Ahora depende solo de verReportes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  useEffect(() => {
+    if (!mostrarHistorial) return;
+    const fetchVentas = async () => {
+      try {
+        const ruta = verReportes ? '/ventas/anteriores' : '/ventas/hoy';
+        const resVentas = await api.get(ruta);
+        setVentas(resVentas.data);
+      } catch {
+        addToast('Error al cargar ventas', 'error');
+      }
+    };
+    fetchVentas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mostrarHistorial, verReportes]);
 
   const cargarProductos = async () => {
-    const res = await api.get('/productos');
-    setProductos(res.data);
+    try {
+      const res = await api.get('/productos');
+      setProductos(res.data || []);
+    } catch {
+      addToast('Error al cargar productos', 'error');
+    }
   };
 
   const cargarVentas = async () => {
-    const ruta = verReportes ? '/ventas' : '/ventas/hoy';
-    const res = await api.get(ruta);
-    setVentas(res.data);
+    try {
+      const ruta = verReportes ? '/ventas/anteriores' : '/ventas/hoy';
+      const res = await api.get(ruta);
+      setVentas(res.data || []);
+    } catch {
+      addToast('Error al cargar ventas', 'error');
+    }
   };
 
   const registrarVenta = async (ventaData) => {
-    await api.post('/ventas', ventaData);
-    setProductosSeleccionados([]);
-    cargarProductos();
-    cargarVentas();
+    try {
+      const res = await api.post('/ventas', ventaData);
+      await Promise.all([cargarProductos(), cargarVentas()]);
+      return res.data;
+    } catch (err) {
+      throw err;
+    }
   };
 
   return (
     <div className="ventas-page">
-      <div className="venta-form-section">
-        <h2>Formulario de Venta</h2>
-        <VentaForm
-          productosDisponibles={productos}
-          productosSeleccionados={productosSeleccionados}
-          setProductosSeleccionados={setProductosSeleccionados}
-          onSubmit={registrarVenta}
-        />
+      <div className="ventas-pos-section">
+        {cargando ? (
+          <Spinner texto="Cargando productos..." />
+        ) : (
+          <VentaForm
+            productosDisponibles={productos}
+            onSubmit={registrarVenta}
+          />
+        )}
       </div>
 
-      <div className="venta-historial-section">
-        <h2>{verReportes ? 'Reportes de Ventas' : 'Historial de Ventas del Día'}</h2>
+      <div className="ventas-historial-toggle">
         <button
           className="toggle-button"
-          onClick={() => setVerReportes(!verReportes)}
+          onClick={() => setMostrarHistorial(v => !v)}
         >
-          {verReportes ? 'Ver ventas del día' : 'Ver reportes anteriores'}
+          {mostrarHistorial ? '▲ Ocultar historial' : '▼ Ver historial de ventas'}
         </button>
-        <HistorialVentas ventas={ventas} />
+        {mostrarHistorial && (
+          <button
+            className="toggle-button"
+            onClick={() => setVerReportes(v => !v)}
+          >
+            {verReportes ? 'Ver ventas del día' : 'Ver ventas anteriores'}
+          </button>
+        )}
       </div>
+
+      {mostrarHistorial && (
+        <div className="ventas-historial-section">
+          <h3>{verReportes ? 'Ventas anteriores' : 'Ventas del día'}</h3>
+          <HistorialVentas ventas={ventas} />
+        </div>
+      )}
     </div>
   );
 };

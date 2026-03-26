@@ -1,0 +1,77 @@
+.gmp-card {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.gmp-titulo {
+  margin: 0 0 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.gmp-barras {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gmp-fila {
+  display: grid;
+  grid-template-columns: 22px 110px 1fr 48px 90px 60px;
+  align-items: center;
+  gap: 10px;
+}
+
+.gmp-icono {
+  font-size: 1rem;
+  text-align: center;
+}
+
+.gmp-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.gmp-barra-wrap {
+  height: 14px;
+  background: var(--fondo-principal);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.gmp-barra {
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.4s ease;
+}
+
+.gmp-pct {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--texto-secundario);
+  text-align: right;
+}
+
+.gmp-monto {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--texto-principal);
+  text-align: right;
+}
+
+.gmp-ventas {
+  font-size: 0.75rem;
+  color: var(--texto-secundario);
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .gmp-fila {
+    grid-template-columns: 22px 1fr 1fr 40px;
+  }
+  .gmp-barra-wrap, .gmp-ventas { display: none; }
+}

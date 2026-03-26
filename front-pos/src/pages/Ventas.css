@@ -1,62 +1,66 @@
 .ventas-page {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 2rem;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
   box-sizing: border-box;
+  height: calc(100vh - 62px);
+  overflow: hidden;
 }
 
-.venta-form-section {
-  background-color: var(--fondo-tarjeta);
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+.ventas-pos-section {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.venta-productos-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-
-.venta-col {
-  background-color: var(--fondo-tarjeta);
-  padding: 1rem;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-}
-
-.venta-historial-section {
-  background-color: var(--fondo-tarjeta);
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+/* ── Historial colapsable ── */
+.ventas-historial-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .toggle-button {
-  align-self: flex-end;
-  margin-bottom: 1rem;
-  padding: 0.6rem 1.2rem;
-  background-color: var(--fondo-tarjeta);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  color: #333;
+  padding: 0.45rem 1rem;
+  background: var(--fondo-tarjeta);
+  border: 1.5px solid var(--fondo-borde);
+  color: var(--texto-principal);
   border-radius: 8px;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 0.82rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s;
 }
 
 .toggle-button:hover {
-  background-color: #f0f0f0;
-  color: #000;
-  transform: scale(1.03);
+  border-color: var(--boton-primario);
+  color: var(--boton-primario);
 }
 
+.ventas-historial-section {
+  background: var(--fondo-tarjeta);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
 
-/* Responsive */
-@media (max-width: 900px) {
-  .venta-productos-section {
-    grid-template-columns: 1fr;
+.ventas-historial-section h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  color: var(--texto-principal);
+}
+
+@media (max-width: 860px) {
+  .ventas-page {
+    height: auto;
+    overflow: visible;
+  }
+  .ventas-pos-section {
+    overflow: visible;
   }
 }

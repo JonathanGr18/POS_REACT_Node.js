@@ -1,0 +1,102 @@
+.barcode-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.barcode-box {
+  background: var(--fondo-tarjeta);
+  border-radius: 14px;
+  padding: 1.75rem;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  animation: barcodeIn 0.2s ease;
+}
+
+@keyframes barcodeIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.barcode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.barcode-header h3 {
+  font-size: 1.1rem;
+  color: var(--texto-principal);
+  margin: 0;
+}
+
+.barcode-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.barcode-close:hover {
+  background: var(--fondo-hover);
+}
+
+.barcode-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.barcode-section,
+.qr-section {
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
+  border: 1px solid var(--fondo-borde);
+  border-radius: 10px;
+  background: var(--fondo-principal);
+}
+
+.barcode-section h4,
+.qr-section h4 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-secundario);
+  margin-bottom: 0.75rem;
+}
+
+.barcode-section svg {
+  max-width: 100%;
+}
+
+.barcode-info {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--texto-secundario);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.barcode-info strong {
+  color: var(--texto-principal);
+}
+
+.barcode-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}

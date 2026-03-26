@@ -1,18 +1,17 @@
 .tabla-responsive {
-  max-height: 50em;  /* altura máxima que quieres para la tabla */
-  overflow-y: auto;   /* activa scroll vertical */
-  border: 1px solid #ddd; /* opcional, para ver límites */
+  max-height: 50em;
+  overflow-y: auto;
+  border: 1px solid var(--tabla-borde);
 }
 
-/* Opcional: que la cabecera quede fija */
+/* Cabecera fija al hacer scroll vertical */
 .tabla-responsive table {
   width: 100%;
   border-collapse: collapse;
 }
 
-
 .no-data {
   text-align: center;
   padding: 1rem;
-  color: #888;
+  color: var(--texto-secundario);
 }

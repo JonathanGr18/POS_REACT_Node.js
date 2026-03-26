@@ -1,161 +1,279 @@
-// components/Faltantes.js
 import React, { useEffect, useState, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import axios from 'axios';
+import api, { IMAGE_BASE_URL } from '../../services/api';
+import ConfirmModal from '../ui/ConfirmModal';
+import Spinner from '../ui/Spinner';
+import { useToast } from '../ui/Toast';
+import useDebounce from '../../hooks/useDebounce';
+import { useSettings } from '../../context/SettingsContext';
 import './Faltantes.css';
 
+const ESTADO = (stock) => {
+  if (Number(stock) === 0)  return { label: 'Sin existencia', cls: 'estado--rojo',    icon: '❌' };
+  if (Number(stock) <= 5)  return { label: 'Muy bajo',        cls: 'estado--naranja', icon: '⚠️' };
+  return                           { label: 'Por terminarse', cls: 'estado--amarillo', icon: '📉' };
+};
+
+const FILTROS = [
+  { key: 'todos',          label: 'Todos'          },
+  { key: 'sin_existencia', label: '❌ Sin existencia' },
+  { key: 'muy_bajo',       label: '⚠️ Muy bajo'       },
+  { key: 'por_terminarse', label: '📉 Por terminarse' },
+  { key: 'mas_vendidos',   label: '🔥 Más vendidos'   },
+];
+
 const Faltantes = () => {
+  const { addToast } = useToast();
+  const { settings } = useSettings();
   const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
-  const [ordenarPor, setOrdenarPor] = useState('stock');
-  const [ascendente, setAscendente] = useState(true);
+  const busquedaDebounced = useDebounce(busqueda, 400);
+  const [filtro, setFiltro] = useState('todos');
+  const [modalEliminar, setModalEliminar] = useState({ visible: false, id: null });
+  const [eliminando, setEliminando] = useState(null);
 
-  useEffect(() => {
-  axios.get('http://localhost:5000/api/productos/faltantes')
-    .then(res => {
-      const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
-      setProductos(data);
-    })
-    .catch(err => {
-      console.error('Error al obtener productos faltantes:', err);
-      setProductos([]);
-    });
-  }, []);
+  const cargar = () => {
+    setCargando(true);
+    api.get(`/productos/faltantes?umbral=${settings.stockUmbral || 15}`)
+      .then(res => setProductos(Array.isArray(res.data) ? res.data : []))
+      .catch(() => { addToast('Error al cargar faltantes', 'error'); setProductos([]); })
+      .finally(() => setCargando(false));
+  };
 
-  const exportarPDF = () => {
-   const doc = new jsPDF();
-   doc.text('Productos Faltantes o Escasos', 14, 16);
-
-   autoTable(doc, {
-      startY: 20,
-      head: [['Nombre', 'Código', 'Descripción', 'Stock', 'Estado']],
-      body: productosFiltrados.map(p => [
-         p.nombre,
-         p.codigo || '-',
-         p.descripcion || '-',
-         p.stock,
-         p.stock === 0 ? 'Sin existencia' : (p.stock <= 5 ? 'Muy bajo' : 'Por terminarse')
-      ]),
-      theme: 'striped',
-      styles: {
-         fontSize: 10
-      }
-   });
-
-   doc.save('faltantes.pdf');
-   };
-
-   const eliminarProducto = async (id) => {
-      const confirmar = window.confirm('¿Estás seguro de eliminar este producto?');
-      if (!confirmar) return;
-
-      try {
-        await axios.delete(`/api/productos/${id}`);
-        setProductos(prev => prev.filter(p => p.id !== id));
-      } catch (error) {
-        console.error('Error al eliminar producto:', error);
-        alert('No se pudo eliminar el producto.');
-      }
-    };
-
+  useEffect(() => { cargar(); }, []);
 
   const productosFiltrados = useMemo(() => {
-    const filtrados = productos.filter(prod =>
-      prod.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      (prod.codigo && prod.codigo.toLowerCase().includes(busqueda.toLowerCase()))
-    );
-
-    return filtrados.sort((a, b) => {
-      const valorA = a[ordenarPor];
-      const valorB = b[ordenarPor];
-
-      if (typeof valorA === 'string') {
-        return ascendente ? valorA.localeCompare(valorB) : valorB.localeCompare(valorA);
-      }
-      return ascendente ? valorA - valorB : valorB - valorA;
+    const termino = busquedaDebounced.toLowerCase();
+    let lista = productos.filter(p => {
+      const nombre = (p.nombre || '').toLowerCase();
+      const codigo = (p.codigo || '').toLowerCase();
+      return nombre.includes(termino) || codigo.includes(termino);
     });
-  }, [productos, busqueda, ordenarPor, ascendente]);
 
-  const cambiarOrden = (campo) => {
-    if (ordenarPor === campo) {
-      setAscendente(!ascendente);
-    } else {
-      setOrdenarPor(campo);
-      setAscendente(true);
+    if (filtro === 'sin_existencia') lista = lista.filter(p => Number(p.stock) === 0);
+    else if (filtro === 'muy_bajo')   lista = lista.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5);
+    else if (filtro === 'por_terminarse') lista = lista.filter(p => Number(p.stock) > 5);
+    else if (filtro === 'mas_vendidos')   lista = [...lista].sort((a, b) => (b.vendidos_mes || 0) - (a.vendidos_mes || 0));
+
+    if (filtro !== 'mas_vendidos') lista = [...lista].sort((a, b) => Number(a.stock) - Number(b.stock));
+    return lista;
+  }, [productos, busquedaDebounced, filtro]);
+
+  // Recomendaciones: sin stock pero muy vendidos
+  const recomendaciones = useMemo(() =>
+    productos
+      .filter(p => Number(p.stock) === 0 && (p.vendidos_mes || 0) > 0)
+      .sort((a, b) => (b.vendidos_mes || 0) - (a.vendidos_mes || 0))
+      .slice(0, 3),
+    [productos]
+  );
+
+  const confirmarEliminar = async () => {
+    const id = modalEliminar.id;
+    setModalEliminar({ visible: false, id: null });
+    setEliminando(id);
+    try {
+      await api.delete(`/productos/${id}`);
+      setProductos(prev => prev.filter(p => p.id !== id));
+      addToast('Producto eliminado', 'exito');
+    } catch {
+      addToast('No se pudo eliminar el producto', 'error');
+    } finally {
+      setEliminando(null);
     }
   };
 
-  return (
-    <div className="faltantes-container">
-      <h2>📦 Productos Faltantes o Escasos</h2>
+  // ── PDF ──────────────────────────────────────────────────────
+  const exportarPDF = () => {
+    const doc = new jsPDF();
+    const fecha = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' });
 
-      <div className="buscador-orden">
+    doc.setFillColor(153, 103, 206);
+    doc.rect(0, 0, 210, 28, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Reporte de Faltantes', 14, 12);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${settings.nombre}  ·  ${fecha}`, 14, 22);
+    doc.setTextColor(0, 0, 0);
+
+    const grupos = [
+      { label: 'Sin existencia', color: [231, 76,  60],  items: productos.filter(p => Number(p.stock) === 0) },
+      { label: 'Muy bajo',       color: [243, 156, 18],  items: productos.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5) },
+      { label: 'Por terminarse', color: [241, 196, 15],  items: productos.filter(p => Number(p.stock) > 5) },
+    ];
+
+    let y = 34;
+    for (const g of grupos) {
+      if (g.items.length === 0) continue;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...g.color);
+      doc.text(g.label, 14, y);
+      doc.setTextColor(0, 0, 0);
+      y += 2;
+      autoTable(doc, {
+        startY: y,
+        head: [['Producto', 'Código', 'Stock', 'Vendidos (30d)']],
+        body: g.items.map(p => [p.nombre, p.codigo || '-', p.stock, p.vendidos_mes || 0]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: g.color, textColor: [255, 255, 255] },
+        margin: { left: 14, right: 14 },
+      });
+      y = doc.lastAutoTable.finalY + 8;
+    }
+
+    doc.save(`faltantes-${new Date().toISOString().slice(0,10)}.pdf`);
+    addToast('PDF exportado', 'exito');
+  };
+
+  // ── WhatsApp ─────────────────────────────────────────────────
+  const compartirWhatsApp = () => {
+    const fecha = new Date().toLocaleDateString('es-MX');
+    const lineas = [`*📦 Faltantes - ${settings.nombre}*`, `📅 ${fecha}`, ''];
+
+    const grupos = [
+      { icon: '❌', label: 'SIN EXISTENCIA', items: productos.filter(p => Number(p.stock) === 0) },
+      { icon: '⚠️', label: 'MUY BAJO',       items: productos.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5) },
+      { icon: '📉', label: 'POR TERMINARSE', items: productos.filter(p => Number(p.stock) > 5) },
+    ];
+
+    for (const g of grupos) {
+      if (g.items.length === 0) continue;
+      lineas.push(`${g.icon} *${g.label}:*`);
+      g.items.forEach(p => lineas.push(`  • ${p.nombre} (${p.stock} uds)`));
+      lineas.push('');
+    }
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(lineas.join('\n'))}`, '_blank');
+  };
+
+  // ── Conteos para badges de filtro ────────────────────────────
+  const conteos = useMemo(() => ({
+    todos:          productos.length,
+    sin_existencia: productos.filter(p => Number(p.stock) === 0).length,
+    muy_bajo:       productos.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5).length,
+    por_terminarse: productos.filter(p => Number(p.stock) > 5).length,
+    mas_vendidos:   productos.filter(p => (p.vendidos_mes || 0) > 0).length,
+  }), [productos]);
+
+  return (
+    <div className="falt-page">
+      <ConfirmModal
+        visible={modalEliminar.visible}
+        mensaje="¿Eliminar este producto del inventario?"
+        onConfirm={confirmarEliminar}
+        onCancel={() => setModalEliminar({ visible: false, id: null })}
+      />
+
+      {/* ── Header ── */}
+      <div className="falt-header">
+        <div>
+          <h2 className="falt-titulo">📦 Faltantes</h2>
+          <p className="falt-subtitulo">{productos.length} producto{productos.length !== 1 ? 's' : ''} con stock bajo</p>
+        </div>
+        <div className="falt-acciones">
+          <button className="falt-btn falt-btn--wa" onClick={compartirWhatsApp} disabled={productos.length === 0}>
+            💬 WhatsApp
+          </button>
+          <button className="falt-btn falt-btn--pdf" onClick={exportarPDF} disabled={productos.length === 0}>
+            📄 PDF
+          </button>
+        </div>
+      </div>
+
+      {/* ── Recomendaciones ── */}
+      {recomendaciones.length > 0 && (
+        <div className="falt-recomendaciones">
+          <p className="falt-rec-titulo">🔥 Pide con urgencia — sin stock pero muy vendidos:</p>
+          <div className="falt-rec-lista">
+            {recomendaciones.map(p => (
+              <div key={p.id} className="falt-rec-item">
+                <span className="falt-rec-nombre">{p.nombre}</span>
+                <span className="falt-rec-ventas">{p.vendidos_mes} vendidos este mes</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Búsqueda + filtros ── */}
+      <div className="falt-controles">
         <input
+          className="falt-busqueda"
           type="text"
-          placeholder="Buscar por nombre o código"
+          placeholder="🔍 Buscar producto..."
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
-          className="input"
         />
-        <button className="btn btn-secondary" onClick={() => cambiarOrden('stock')}>
-          Ordenar por Stock {ordenarPor === 'stock' ? (ascendente ? '↑' : '↓') : ''}
-        </button>
-        <button className="btn btn-secondary" onClick={() => cambiarOrden('nombre')}>
-          Ordenar por Nombre {ordenarPor === 'nombre' ? (ascendente ? '↑' : '↓') : ''}
-        </button>
-        <button className="btn btn-primary" onClick={exportarPDF}>
-         📄 Exportar PDF
-         </button>
+        <div className="falt-filtros">
+          {FILTROS.map(f => (
+            <button
+              key={f.key}
+              className={`falt-filtro-btn${filtro === f.key ? ' activo' : ''}`}
+              onClick={() => setFiltro(f.key)}
+            >
+              {f.label}
+              {conteos[f.key] > 0 && <span className="falt-filtro-badge">{conteos[f.key]}</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="tabla-responsive">
-        <table className="tabla">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Código</th>
-              <th>Descripción</th>
-              <th>Stock</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productosFiltrados.length > 0 ? (
-              productosFiltrados.map(producto => (
-                <tr key={producto.id}>
-                  <td>{producto.codigo || '-'}</td>
-                  <td>{producto.nombre}</td>
-                  <td>{producto.descripcion || '-'}</td>
-                  <td>{producto.stock}</td>
-                  <td>
-                    {producto.stock === 0 ? (
-                      <>
-                        <span className="status status-rojo">Sin existencia</span>
-                        <button
-                          className="btn btn-danger btn-mini"
-                          style={{ marginLeft: '10px' }}
-                          onClick={() => eliminarProducto(producto.id)}
-                        >
-                          🗑️
-                        </button>
-                      </>
-                    ) : producto.stock <= 5 ? (
-                      <span className="status status-naranja">Muy bajo</span>
-                    ) : (
-                      <span className="status status-naranja">Por terminarse</span>
+      {/* ── Cards ── */}
+      {cargando ? <Spinner /> : (
+        productosFiltrados.length === 0 ? (
+          <div className="falt-empty">
+            <p>🎉 No hay productos en esta categoría</p>
+          </div>
+        ) : (
+          <div className="falt-grid">
+            {productosFiltrados.map(p => {
+              const est = ESTADO(p.stock);
+              return (
+                <div key={p.id} className={`falt-card falt-card--${est.cls.split('--')[1]}`}>
+                  {/* Imagen o placeholder */}
+                  {p.imagen_url
+                    ? <img src={`${IMAGE_BASE_URL}${p.imagen_url}`} alt={p.nombre} className="falt-card-img" />
+                    : <div className="falt-card-img-placeholder">📦</div>
+                  }
+
+                  <div className="falt-card-body">
+                    <p className="falt-card-nombre">{p.nombre}</p>
+                    {p.codigo && <p className="falt-card-codigo">#{p.codigo}</p>}
+
+                    <div className="falt-card-row">
+                      <span className={`falt-estado ${est.cls}`}>
+                        {est.icon} {est.label}
+                      </span>
+                      <span className="falt-stock-num">{p.stock} uds</span>
+                    </div>
+
+                    {p.vendidos_mes > 0 && (
+                      <p className="falt-vendidos">🔥 {p.vendidos_mes} vendidos este mes</p>
                     )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" style={{ textAlign: 'center' }}>No hay productos faltantes 🎉</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+
+                  {Number(p.stock) === 0 && (
+                    <button
+                      className="falt-btn-eliminar"
+                      onClick={() => setModalEliminar({ visible: true, id: p.id })}
+                      disabled={eliminando === p.id}
+                      title="Eliminar producto"
+                    >
+                      {eliminando === p.id ? '⏳' : '🗑️'}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )
+      )}
     </div>
   );
 };

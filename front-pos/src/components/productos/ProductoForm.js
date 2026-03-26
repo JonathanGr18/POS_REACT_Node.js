@@ -1,10 +1,13 @@
 import './ProductoForm.css';
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaSave } from 'react-icons/fa';
+import { useToast } from '../ui/Toast';
 
 const ProductoForm = ({ onSubmit, productoSeleccionado, productos = [] }) => {
-  const [form, setForm] = useState({ nombre: '', precio: '', descripcion: '', codigo: '', stock: '' });
+  const { addToast } = useToast();
+  const [form, setForm] = useState({ nombre: '', precio: '', descripcion: '', codigo: '', stock: '', status: true });
   const [modoEdicion, setModoEdicion] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (productoSeleccionado) {
@@ -16,7 +19,7 @@ const ProductoForm = ({ onSubmit, productoSeleccionado, productos = [] }) => {
       while (codigosExistentes.includes(nuevoCodigo)) {
         nuevoCodigo++;
       }
-      setForm({ nombre: '', precio: '', descripcion: '', codigo: nuevoCodigo.toString(), stock: '' });
+      setForm({ nombre: '', precio: '', descripcion: '', codigo: nuevoCodigo.toString(), stock: '', status: true });
       setModoEdicion(false);
     }
   }, [productoSeleccionado, productos]);
@@ -25,17 +28,28 @@ const ProductoForm = ({ onSubmit, productoSeleccionado, productos = [] }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const existeCodigo = productos.some(
       (p) =>
-        p.codigo.toLowerCase() === form.codigo.toLowerCase() &&
+        p.codigo != null &&
+        p.codigo.toString().toLowerCase() === form.codigo.toString().toLowerCase() &&
         p.id !== form.id
     );
 
     if (existeCodigo) {
-      alert('Ya existe un producto con ese código.');
+      addToast('Ya existe un producto con ese código.', 'aviso');
+      return;
+    }
+
+    if (form.precio === '' || isNaN(parseFloat(form.precio)) || parseFloat(form.precio) < 0) {
+      addToast('El precio debe ser un número mayor o igual a cero', 'aviso');
+      return;
+    }
+
+    if (form.stock === '' || isNaN(parseInt(form.stock)) || parseInt(form.stock) < 0) {
+      addToast('El stock debe ser un número mayor o igual a cero', 'aviso');
       return;
     }
 
@@ -46,8 +60,14 @@ const ProductoForm = ({ onSubmit, productoSeleccionado, productos = [] }) => {
       stock: parseInt(form.stock),
     };
 
-    onSubmit(formData);
-    setForm({ nombre: '', precio: '', descripcion: '', codigo: '', stock: '' });
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+    } catch {
+      // El error ya es manejado por el padre (crearOActualizar)
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -61,7 +81,7 @@ const ProductoForm = ({ onSubmit, productoSeleccionado, productos = [] }) => {
             onChange={handleChange}
             placeholder=" "
             required
-            disabled={modoEdicion} // deshabilita el código al editar
+            disabled={modoEdicion}
           />
           <label className="floating-label">Código</label>
         </div>
@@ -87,6 +107,7 @@ const ProductoForm = ({ onSubmit, productoSeleccionado, productos = [] }) => {
             placeholder=" "
             type="number"
             min="0"
+            max="99999999.99"
             step="0.01"
             required
           />
@@ -120,9 +141,9 @@ const ProductoForm = ({ onSubmit, productoSeleccionado, productos = [] }) => {
         </div>
       </div>
 
-      <button className="btn-formulario" type="submit">
+      <button className="btn-formulario" type="submit" disabled={isSubmitting}>
         {modoEdicion ? <FaSave /> : <FaPlus />}
-        {modoEdicion ? 'Actualizar' : 'Agregar'}
+        {isSubmitting ? 'Procesando...' : (modoEdicion ? 'Actualizar' : 'Agregar')}
       </button>
     </form>
   );

@@ -1,0 +1,61 @@
+.grafica-meses-card {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  min-height: 80px;
+}
+
+.grafica-meses-top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.grafica-meses-titulo {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.grafica-meses-sub {
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
+}
+
+.grafica-meses-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.grafica-meses-leyenda {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
+}
+
+.leyenda-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.leyenda-linea {
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  display: inline-block;
+}

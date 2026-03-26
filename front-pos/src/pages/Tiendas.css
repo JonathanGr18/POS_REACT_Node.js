@@ -1,0 +1,377 @@
+/* ========================================
+   TIENDAS PAGE — layout principal
+   ======================================== */
+
+.tiendas-page {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+/* ---- Sidebar izquierdo ---- */
+.tiendas-sidebar {
+  border-right: 1px solid var(--fondo-borde);
+  background: var(--fondo-tarjeta);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tiendas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--fondo-borde);
+  flex-shrink: 0;
+}
+
+.tiendas-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--texto-principal);
+}
+
+.tiendas-lista {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+/* ---- Tarjeta de tienda ---- */
+.tienda-card {
+  border: 1px solid var(--fondo-borde);
+  border-radius: 10px;
+  padding: 0.9rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: var(--fondo-principal);
+}
+
+.tienda-card:hover {
+  border-color: var(--boton-primario);
+  background: var(--fondo-hover);
+}
+
+.tienda-card.activa {
+  border-color: var(--boton-primario);
+  background: var(--fondo-hover);
+  box-shadow: 0 0 0 2px var(--boton-primario);
+}
+
+.tienda-card-info h3 {
+  font-size: 0.95rem;
+  margin: 0 0 4px;
+  color: var(--texto-principal);
+}
+
+.tienda-direccion,
+.tienda-tel {
+  font-size: 0.8rem;
+  color: var(--texto-secundario);
+  margin: 2px 0;
+}
+
+.tienda-badge {
+  display: inline-block;
+  background: var(--boton-primario);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 6px;
+}
+
+.tienda-card-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Botones icono pequeños */
+.btn-icon {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-icon.btn-edit:hover {
+  background: var(--fondo-hover);
+  border-color: var(--fondo-borde);
+}
+
+.btn-icon.btn-danger:hover {
+  background: #fdecea;
+  border-color: var(--boton-peligro);
+}
+
+/* ---- Panel derecho detalle ---- */
+.tiendas-detalle {
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: var(--fondo-principal);
+}
+
+.tienda-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--texto-secundario);
+  font-size: 1.1rem;
+}
+
+/* ---- Estado vacío genérico ---- */
+.no-data {
+  color: var(--texto-secundario);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+/* ========================================
+   TIENDAFORM — modal crear/editar
+   ======================================== */
+
+.tienda-form-box {
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--texto-principal);
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.modal-header button:hover {
+  background: var(--fondo-hover);
+}
+
+.tienda-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tienda-form label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--texto-secundario);
+  margin-bottom: 4px;
+}
+
+.tienda-form .input {
+  width: 100%;
+}
+
+.tienda-form textarea.input {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.tienda-form-footer {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+/* ========================================
+   TIENDADETALLE
+   ======================================== */
+
+.tienda-detalle-container {
+  max-width: 860px;
+}
+
+.tienda-detalle-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--fondo-borde);
+}
+
+.tienda-detalle-header h2 {
+  margin: 0 0 6px;
+  color: var(--texto-principal);
+}
+
+.detalle-dir,
+.detalle-notas {
+  font-size: 0.9rem;
+  color: var(--texto-secundario);
+  margin: 4px 0;
+}
+
+/* Formulario agregar producto */
+.agregar-producto-tienda {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.agregar-producto-tienda h4 {
+  margin: 0 0 0.75rem;
+  color: var(--texto-principal);
+  font-size: 0.95rem;
+}
+
+.form-inline-producto {
+  display: grid;
+  grid-template-columns: 1fr 120px 1fr auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.form-inline-producto .input {
+  margin-bottom: 0;
+}
+
+/* Lista de productos */
+.productos-tienda-lista h4 {
+  margin-bottom: 0.75rem;
+  color: var(--texto-principal);
+  font-size: 0.95rem;
+}
+
+.productos-tienda-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.producto-tienda-card {
+  border: 1px solid var(--fondo-borde);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: var(--fondo-tarjeta);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  transition: box-shadow 0.15s;
+}
+
+.producto-tienda-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.producto-tienda-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.producto-tienda-info strong {
+  font-size: 0.95rem;
+  color: var(--texto-principal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.precio-ref {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--boton-exito);
+}
+
+.prod-notas {
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
+}
+
+.producto-tienda-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 0.78rem;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 900px) {
+  .tiendas-page {
+    grid-template-columns: 280px 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .tiendas-page {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+
+  .tiendas-sidebar {
+    height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid var(--fondo-borde);
+  }
+
+  .tiendas-detalle {
+    padding: 1rem;
+  }
+
+  .form-inline-producto {
+    grid-template-columns: 1fr;
+  }
+
+  .productos-tienda-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .producto-tienda-card {
+    flex-direction: column;
+  }
+
+  .producto-tienda-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .producto-tienda-actions .btn {
+    flex: 1;
+    text-align: center;
+  }
+}

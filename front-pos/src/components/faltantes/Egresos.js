@@ -1,40 +1,39 @@
-// components/AgregarEgresoForm.js
 import React, { useState } from 'react';
 import api from '../../services/api';
+import { useToast } from '../ui/Toast';
 
 const AgregarEgresoForm = () => {
-  // Estado para manejar el monto del egreso
+  const { addToast } = useToast();
   const [monto, setMonto] = useState('');
+  const [concepto, setConcepto] = useState('');
+  const [cargando, setCargando] = useState(false);
 
-  // Función que maneja el envío del formulario
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Evita el comportamiento por defecto del formulario
+    e.preventDefault();
 
-    // Validación para asegurar que el monto sea un número mayor a 0
     if (!monto || isNaN(monto) || parseFloat(monto) <= 0) {
-      return alert('Ingresa un monto válido mayor a cero');
+      addToast('Ingresa un monto válido mayor a cero', 'aviso');
+      return;
     }
 
+    setCargando(true);
     try {
-      // Enviar la información del egreso al backend usando POST
-      await api.post('/productos/egresos', { monto });
-
-      // Alerta de éxito y reiniciar campos
-      alert('Egreso registrado correctamente');
+      await api.post('/productos/egresos', { monto, concepto: concepto.trim() || null });
+      addToast('Egreso registrado correctamente', 'exito');
       setMonto('');
+      setConcepto('');
     } catch (err) {
-      // En caso de error, mostrar mensaje en consola y alerta al usuario
       console.error('Error al registrar egreso:', err);
-      alert('Error al registrar egreso');
+      addToast('Error al registrar egreso', 'error');
+    } finally {
+      setCargando(false);
     }
   };
 
   return (
     <div className="form-section">
       <h2>Registrar Egreso</h2>
-      {/* Formulario controlado para registrar un nuevo egreso */}
       <form onSubmit={handleSubmit} className="formulario-producto">
-        {/* Campo para ingresar el monto */}
         <input
           type="number"
           placeholder="Monto del egreso"
@@ -42,9 +41,17 @@ const AgregarEgresoForm = () => {
           value={monto}
           onChange={e => setMonto(e.target.value)}
         />
-
-        {/* Botón de envío del formulario */}
-        <button type="submit" className="btn btn-danger">➖ Registrar Egreso</button>
+        <input
+          type="text"
+          placeholder="Concepto (ej: renta, proveedor...)"
+          className="input"
+          value={concepto}
+          onChange={e => setConcepto(e.target.value)}
+          maxLength={200}
+        />
+        <button type="submit" className="btn btn-danger" disabled={cargando}>
+          {cargando ? 'Registrando...' : '➖ Registrar Egreso'}
+        </button>
       </form>
     </div>
   );

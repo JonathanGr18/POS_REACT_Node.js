@@ -1,11 +1,288 @@
-.faltantes-container {
-  padding: 2rem;
-  background-color: var(--fondo-principal);
-  color: var(--texto-principal);
-  font-family: 'Segoe UI', sans-serif;
+.falt-page {
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  background: var(--fondo-principal);
+  min-height: calc(100vh - 62px);
 }
 
-.btn-mini {
-  padding: 4px 8px;
-  font-size: 0.8rem;
+/* ── Header ── */
+.falt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.falt-titulo {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--texto-principal);
+}
+
+.falt-subtitulo {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--texto-secundario);
+}
+
+.falt-acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.falt-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.falt-btn:disabled { opacity: 0.45; cursor: default; }
+.falt-btn:not(:disabled):hover { filter: brightness(1.1); }
+
+.falt-btn--wa  { background: #25D366; color: #fff; }
+.falt-btn--pdf { background: var(--boton-primario); color: #fff; }
+
+/* ── Recomendaciones ── */
+.falt-recomendaciones {
+  background: linear-gradient(135deg, rgba(231,76,60,0.12), rgba(243,156,18,0.08));
+  border: 1px solid rgba(231, 76, 60, 0.25);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+}
+
+.falt-rec-titulo {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e74c3c;
+}
+
+.falt-rec-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.falt-rec-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.falt-rec-nombre {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.falt-rec-ventas {
+  font-size: 0.75rem;
+  color: #e74c3c;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── Controles ── */
+.falt-controles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.falt-busqueda {
+  padding: 9px 14px;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 9px;
+  font-size: 0.9rem;
+  background: var(--fondo-tarjeta);
+  color: var(--texto-principal);
+  width: 100%;
+  max-width: 380px;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.falt-busqueda:focus {
+  outline: none;
+  border-color: var(--boton-primario);
+}
+
+.falt-filtros {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.falt-filtro-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--texto-principal);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.falt-filtro-btn.activo {
+  background: var(--boton-primario);
+  border-color: var(--boton-primario);
+  color: white;
+}
+
+.falt-filtro-btn:not(.activo):hover {
+  border-color: var(--boton-primario);
+  color: var(--boton-primario);
+}
+
+.falt-filtro-badge {
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.falt-filtro-btn:not(.activo) .falt-filtro-badge {
+  background: var(--fondo-principal);
+  color: var(--texto-secundario);
+}
+
+/* ── Grid de cards ── */
+.falt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.falt-card {
+  position: relative;
+  background: var(--fondo-tarjeta);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid var(--fondo-borde);
+  transition: box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.falt-card:hover {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.falt-card--rojo    { border-color: rgba(231, 76,  60, 0.4); }
+.falt-card--naranja { border-color: rgba(243, 156, 18, 0.4); }
+.falt-card--amarillo { border-color: rgba(241, 196, 15, 0.4); }
+
+.falt-card-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+}
+
+.falt-card-img-placeholder {
+  width: 100%;
+  height: 110px;
+  background: var(--fondo-principal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: var(--fondo-borde);
+}
+
+.falt-card-body {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.falt-card-nombre {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--texto-principal);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.falt-card-codigo {
+  font-size: 0.72rem;
+  color: var(--texto-secundario);
+  margin: 0;
+}
+
+.falt-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.falt-estado {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.estado--rojo     { background: rgba(231, 76,  60, 0.12); color: #e74c3c; }
+.estado--naranja  { background: rgba(243, 156, 18, 0.12); color: #f39c12; }
+.estado--amarillo { background: rgba(241, 196, 15, 0.12); color: #d4a017; }
+
+.falt-stock-num {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--texto-principal);
+}
+
+.falt-vendidos {
+  font-size: 0.72rem;
+  color: #e74c3c;
+  font-weight: 600;
+  margin: 0;
+}
+
+.falt-btn-eliminar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(231, 76, 60, 0.85);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
+  padding: 4px 7px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.falt-btn-eliminar:hover { background: #e74c3c; }
+.falt-btn-eliminar:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Empty ── */
+.falt-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--texto-secundario);
+  font-size: 1rem;
+}
+
+/* ── Pagina wrapper (pages/Faltantes.js) ── */
+.pagina-faltantes {
+  background: var(--fondo-principal);
 }

@@ -1,73 +1,148 @@
-.filtros-busqueda {
+.producto-list-venta {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  height: 100%;
 }
 
-.input-busqueda,
-.filtros-busqueda select {
-  padding: 8px 10px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid var(--fondo-borde);
-  background-color: var(--fondo-tarjeta);
-  color: var(--texto-principal);
+/* ── Filtros ── */
+.plv-filtros {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.plv-busqueda {
   flex: 1;
-  min-width: 160px;
-}
-
-.btn-orden {
   padding: 8px 12px;
-  font-size: 14px;
-  background-color: var(--boton-secundario);
-  border: none;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.btn-orden:hover {
-  background-color: var(--boton-secundario-hover);
-}
-
-.tabla-scroll-limitada {
-  max-height: 290px; /* para mostrar 5 filas aprox. */
-  overflow-y: auto;
-  border: 1px solid var(--fondo-borde);
+  font-size: 0.9rem;
+  border: 1.5px solid var(--fondo-borde);
   border-radius: 8px;
-  background-color: var(--fondo-tarjeta);
+  background: var(--fondo-tarjeta);
+  color: var(--texto-principal);
 }
 
-.tabla-scroll-limitada table {
-  width: 100%;
-  border-collapse: collapse;
+.plv-busqueda:focus {
+  outline: none;
+  border-color: var(--boton-primario);
 }
 
-.tabla-scroll-limitada thead th {
-  position: sticky;
-  top: 0;
-  background-color: var(--tabla-encabezado);
-  color: white;
-  z-index: 1;
-}
-
-.tabla-productos th,
-.tabla-productos td {
-  padding: 10px;
-  border-bottom: 1px solid var(--fondo-borde);
-  text-align: left;
-}
-
-.button-primary{
-  padding: 6px 10px;
-  background-color: var(--boton-secundario);
-  border: none;
-  color: white;
-  border-radius: 6px;
+.plv-orden {
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 8px;
+  background: var(--fondo-tarjeta);
+  color: var(--texto-principal);
   cursor: pointer;
 }
 
-.button-primary:hover{
-  background-color: var(--boton-primario);
+/* ── Grid de tarjetas ── */
+.plv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.6rem;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 2px;
+  align-content: start;
+}
+
+.plv-card {
+  position: relative;
+  background: var(--fondo-tarjeta);
+  border: 2px solid var(--fondo-borde);
+  border-radius: 10px;
+  padding: 0.75rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  user-select: none;
+}
+
+.plv-card:hover:not(.plv-card--agotado) {
+  border-color: var(--boton-primario);
+  box-shadow: 0 4px 12px rgba(153, 103, 206, 0.25);
+  transform: translateY(-2px);
+}
+
+.plv-card--agotado {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(40%);
+}
+
+.plv-card--activo {
+  border-color: var(--boton-primario);
+  background: color-mix(in srgb, var(--boton-primario) 10%, var(--fondo-tarjeta));
+  box-shadow: 0 0 0 2px var(--boton-primario);
+}
+
+/* Badge de cantidad en carrito */
+.plv-qty-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--boton-primario);
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.plv-nombre {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--texto-principal);
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.plv-precio {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--boton-primario);
+  margin: 0 0 4px;
+}
+
+.plv-stock {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.plv-stock--ok   { color: #27ae60; }
+.plv-stock--bajo { color: #f39c12; }
+
+.plv-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--texto-secundario);
+  font-size: 0.85rem;
+  padding: 2rem 0;
+}
+
+.plv-card-img {
+  width: 100%;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.plv-card-img-placeholder {
+  width: 100%;
+  height: 70px;
+  background: var(--fondo-principal);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--fondo-borde);
 }

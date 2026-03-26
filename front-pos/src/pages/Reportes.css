@@ -1,107 +1,312 @@
-.reportes-calendario {
+.reportes-page {
   padding: 2rem;
-  background-color: var(--fondo-principal);
+  background: var(--fondo-principal);
   color: var(--texto-principal);
   font-family: 'Segoe UI', sans-serif;
 }
 
-h2 {
-  color: var(--boton-primario);
-  margin-bottom: 1.5rem;
-}
-
-/* === Buscador de fecha === */
-.buscador-fecha {
+/* ── Header ── */
+.reportes-header {
   display: flex;
-  gap: 1rem;
   align-items: center;
-  margin-bottom: 1.5rem;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
   flex-wrap: wrap;
 }
 
-.buscador-fecha input[type="date"] {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--fondo-borde);
-  border-radius: 6px;
-  background-color: var(--fondo-tarjeta);
-  color: var(--texto-principal);
-  font-size: 1rem;
+.reportes-titulo {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--boton-primario);
+  white-space: nowrap;
 }
 
-.buscador-fecha button {
-  padding: 0.5rem 1rem;
+/* ── Filtro período ── */
+.filtro-periodo {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filtro-periodo button {
+  padding: 6px 16px;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtro-periodo button:hover {
+  border-color: var(--boton-primario);
+  color: var(--boton-primario);
+}
+
+.filtro-periodo button.activo {
+  background: var(--boton-primario);
+  border-color: var(--boton-primario);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Filtro custom ── */
+.filtro-custom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filtro-custom input[type="date"] {
+  padding: 7px 12px;
+  border: 1px solid var(--fondo-borde);
+  border-radius: 8px;
+  background: var(--fondo-tarjeta);
+  color: var(--texto-principal);
+  font-size: 0.9rem;
+}
+
+.filtro-separador {
+  color: var(--texto-secundario);
+  font-weight: 600;
+}
+
+.filtro-custom button {
+  padding: 7px 20px;
+  background: var(--boton-primario);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.filtro-custom button:hover {
+  background: var(--boton-primario-hover);
+}
+
+.filtro-custom button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Charts row: día semana + hora pico ── */
+.reportes-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .reportes-charts-row { grid-template-columns: 1fr; }
+}
+
+/* ── Días sin ventas ── */
+.dias-sin-ventas-card {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.dsv-titulo {
+  margin: 0 0 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dsv-badge {
+  background: var(--boton-peligro);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.dsv-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dsv-dia {
+  background: var(--fondo-principal);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
+  text-transform: capitalize;
+}
+
+/* ── Historial + Top (bottom grid) ── */
+.reportes-bottom {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ── Historial card ── */
+.historial-card {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.historial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--fondo-borde);
+}
+
+.historial-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.historial-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-csv, .btn-pdf {
+  padding: 5px 12px;
+  color: #fff;
   border: none;
   border-radius: 6px;
-  background-color: var(--boton-secundario);
-  color: var(--texto-invertido);
-  cursor: pointer;
+  font-size: 0.8rem;
   font-weight: 600;
-  transition: background-color 0.2s ease;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.buscador-fecha button:hover {
-  background-color: var(--boton-secundario-hover);
+.btn-csv { background: #2e7d32; }
+.btn-csv:hover:not(:disabled) { background: #1b5e20; }
+
+.btn-pdf { background: #c62828; }
+.btn-pdf:hover:not(:disabled) { background: #b71c1c; }
+
+.btn-csv:disabled, .btn-pdf:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-/* === Calendario === */
-.grid-calendario {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+.historial-lista {
+  max-height: 500px;
+  overflow-y: auto;
 }
 
-.calendario-dia {
-  background-color: var(--fondo-tarjeta);
-  border: 1px solid var(--fondo-borde);
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease;
+.sin-datos {
+  text-align: center;
+  color: var(--texto-secundario);
+  padding: 2.5rem 1rem;
+  font-size: 0.9rem;
 }
 
-.calendario-dia:hover {
-  transform: translateY(-3px);
+/* ── Fila de día ── */
+.historial-dia {
+  border-bottom: 1px solid var(--fondo-borde);
 }
 
-.dia-header {
+.historial-dia:last-child {
+  border-bottom: none;
+}
+
+.historial-dia-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
   cursor: pointer;
-  font-weight: 600;
-  color: var(--boton-primario);
-  margin-bottom: 0.5rem;
+  transition: background 0.15s;
 }
 
-.ventas-detalle {
-  border-top: 1px solid var(--fondo-borde);
-  padding-top: 0.5rem;
-  margin-top: 0.5rem;
+.historial-dia-header:hover {
+  background: var(--fondo-hover);
 }
 
-.venta-item {
-  background-color: var(--fondo-hover);
-  padding: 0.5rem;
-  margin-bottom: 0.4rem;
-  border-radius: 6px;
+.historial-fecha {
+  flex: 1;
+  font-size: 0.88rem;
+  color: var(--texto-principal);
+  text-transform: capitalize;
+}
+
+.historial-num-ventas {
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
+  white-space: nowrap;
+}
+
+.historial-total {
+  font-weight: 700;
   font-size: 0.95rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  color: var(--boton-primario);
+  min-width: 80px;
+  text-align: right;
 }
 
-.venta-item button {
+.historial-chevron {
+  font-size: 0.65rem;
+  color: var(--texto-secundario);
+}
+
+/* ── Detalle del día ── */
+.historial-detalle {
+  background: var(--fondo-principal);
+  padding: 0.5rem 1.25rem 0.75rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--fondo-borde);
+}
+
+.historial-venta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.historial-hora {
+  color: var(--texto-secundario);
+  flex: 1;
+}
+
+.historial-venta-total {
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.btn-ticket {
   background: var(--boton-exito);
   border: none;
-  border-radius: 4px;
-  color: var(--texto-invertido);
-  padding: 4px 8px;
-  font-size: 0.9rem;
+  border-radius: 5px;
+  color: #fff;
+  padding: 3px 9px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  font-size: 0.85rem;
+  transition: background 0.2s;
 }
 
-.venta-item button:hover {
-  background-color: var(--boton-exito-hover);
+.btn-ticket:hover {
+  background: var(--boton-exito-hover);
 }

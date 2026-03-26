@@ -1,0 +1,157 @@
+/* ===== Dashboard Page ===== */
+.dashboard-page {
+  padding: 2rem;
+  background: var(--fondo-principal);
+  min-height: calc(100vh - 64px);
+}
+
+.dashboard-titulo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--texto-principal);
+  margin-bottom: 1.5rem;
+}
+
+/* ===== Grid de métricas ===== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ===== Tarjeta de métrica ===== */
+.metrica-card {
+  background: var(--fondo-tarjeta);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid var(--boton-primario);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.metrica-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.metrica-card.critico {
+  border-left-color: var(--boton-peligro);
+}
+
+.metrica-icono {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.metrica-valor {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--boton-primario);
+  line-height: 1.1;
+  word-break: break-all;
+}
+
+.metrica-card.critico .metrica-valor {
+  color: var(--boton-peligro);
+}
+
+.metrica-label {
+  font-size: 0.9rem;
+  color: var(--texto-secundario);
+  margin-top: 0.5rem;
+}
+
+/* ===== Secciones inferiores ===== */
+.dashboard-seccion {
+  margin-top: 2rem;
+  background: var(--fondo-tarjeta);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-seccion h3 {
+  margin-bottom: 1rem;
+  color: var(--texto-principal);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* ===== Tabla top productos ===== */
+.dashboard-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.dashboard-tabla thead tr {
+  border-bottom: 2px solid var(--fondo-borde);
+}
+
+.dashboard-tabla th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: var(--texto-secundario);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.dashboard-tabla td {
+  padding: 0.6rem 0.75rem;
+  color: var(--texto-principal);
+  border-bottom: 1px solid var(--fondo-borde);
+}
+
+.dashboard-tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dashboard-tabla tbody tr:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* ===== Últimas ventas ===== */
+.ultima-venta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--fondo-borde);
+  font-size: 0.95rem;
+  gap: 1rem;
+}
+
+.ultima-venta-item:last-child {
+  border-bottom: none;
+}
+
+.ultima-venta-id {
+  font-weight: 600;
+  color: var(--texto-principal);
+  min-width: 80px;
+}
+
+.ultima-venta-fecha {
+  color: var(--texto-secundario);
+  flex: 1;
+}
+
+.ultima-venta-total {
+  font-weight: 700;
+  color: var(--boton-primario);
+}
+
+/* ===== Estado vacío ===== */
+.dashboard-vacio {
+  color: var(--texto-secundario);
+  font-style: italic;
+  padding: 0.5rem 0;
+}

@@ -1,0 +1,61 @@
+.grafica-periodo-card {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.grafica-periodo-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.grafica-periodo-titulo {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.grafica-periodo-leyenda {
+  display: flex;
+  gap: 16px;
+}
+
+.gp-ley-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
+}
+
+.gp-ley-linea {
+  display: inline-block;
+  width: 20px;
+  height: 2.5px;
+  border-radius: 2px;
+}
+
+.gp-ley-dash {
+  background: repeating-linear-gradient(
+    90deg,
+    #f5a623 0px, #f5a623 5px,
+    transparent 5px, transparent 9px
+  ) !important;
+}
+
+.grafica-periodo-scroll {
+  overflow-x: auto;
+}
+
+.grafica-periodo-svg {
+  display: block;
+  width: 100%;
+  min-width: 500px;
+}

@@ -75,7 +75,7 @@ const generarHTMLTicket = (venta) => {
           <h2>Papeleria Amistad</h2>
           <div class="direccion">
             Calle De la amistad #1414<br>
-            Col. VillasPerisur, Zapopan, Jal.<br>
+            Col. Villas Perisur, Zapopan, Jal.<br>
             WhatsApp. 33-4514-4736
           </div>
 
@@ -91,7 +91,7 @@ const generarHTMLTicket = (venta) => {
               <tr>
                 <th>Cant</th>
                 <th>Producto</th>
-                <th>Desc</th>
+                <th>Descrip.</th>
                 <th style="text-align: right;">Precio</th>
               </tr>
             </thead>
@@ -102,7 +102,7 @@ const generarHTMLTicket = (venta) => {
                     <td>${p.cantidad}</td>
                     <td>${p.producto}</td>
                     <td>${p.descripcion || '-'}</td>
-                    <td style="text-align: right;">$${(p.precio * p.cantidad).toFixed(2)}</td>
+                    <td style="text-align: right;">$${(Number(p.precio) * Number(p.cantidad)).toFixed(2)}</td>
                   </tr>
                 `)
                 .join('')}
@@ -126,6 +126,10 @@ const generarHTMLTicket = (venta) => {
 const handleImprimir = (venta) => {
   const contenido = generarHTMLTicket(venta);
   const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('El navegador bloqueó la ventana emergente. Permite pop-ups para imprimir.');
+    return;
+  }
   printWindow.document.write(contenido);
   printWindow.document.close();
   printWindow.focus();
@@ -161,7 +165,7 @@ const VentaList = ({ ventas = [] }) => {
                     <ul className="venta-productos">
                       {(venta.productos || []).map((p, idx) => (
                         <li key={idx}>
-                          {p.producto} × {p.cantidad} — ${p.precio}
+                          {p.producto} × {p.cantidad} — ${Number(p.precio).toFixed(2)}
                         </li>
                       ))}
                     </ul>

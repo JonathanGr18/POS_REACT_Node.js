@@ -1,0 +1,138 @@
+.heatmap-card {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.heatmap-top {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.heatmap-titulo {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.heatmap-resumen {
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heatmap-resumen-sep {
+  opacity: 0.5;
+}
+
+.heatmap-scroll {
+  overflow-x: auto;
+}
+
+/* Layout principal: columna de días + columna de semanas */
+.heatmap-inner {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+/* Columna izquierda: etiquetas L M X J V S D */
+.heatmap-dias-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 0;
+  flex-shrink: 0;
+}
+
+.heatmap-dias-spacer {
+  height: 18px; /* altura de la fila de meses */
+  margin-bottom: 3px;
+}
+
+.heatmap-dia-label {
+  width: 14px;
+  height: 14px;
+  font-size: 9px;
+  color: var(--texto-secundario);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 3px;
+}
+
+/* Columna derecha: meses + celdas */
+.heatmap-semanas-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Fila de meses */
+.heatmap-meses-row {
+  display: flex;
+  gap: 3px;
+  height: 16px;
+  align-items: flex-end;
+}
+
+.heatmap-mes-slot {
+  width: 14px;
+  font-size: 9px;
+  color: var(--texto-secundario);
+  white-space: nowrap;
+  overflow: visible;
+  line-height: 1;
+}
+
+/* Fila de celdas */
+.heatmap-celdas-row {
+  display: flex;
+  gap: 3px;
+}
+
+.heatmap-semana-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.heatmap-celda {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  cursor: default;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.heatmap-celda:hover {
+  opacity: 0.8;
+  transform: scale(1.15);
+}
+
+/* Leyenda inferior */
+.heatmap-leyenda {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.heatmap-leyenda-label {
+  font-size: 10px;
+  color: var(--texto-secundario);
+}
+
+.heatmap-leyenda-celda {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
