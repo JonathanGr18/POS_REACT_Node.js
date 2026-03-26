@@ -105,6 +105,9 @@
 
 @media (max-width: 700px) {
   .reportes-charts-row { grid-template-columns: 1fr; }
+  .reportes-bottom { grid-template-columns: 1fr; }
+  .reportes-page { padding: 1rem; }
+  .reportes-header { gap: 0.75rem; }
 }
 
 /* ── Días sin ventas ── */

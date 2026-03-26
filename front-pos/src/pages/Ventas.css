@@ -59,8 +59,15 @@
   .ventas-page {
     height: auto;
     overflow: visible;
+    padding: 0.75rem 1rem;
   }
   .ventas-pos-section {
     overflow: visible;
+  }
+}
+
+@media (max-width: 480px) {
+  .ventas-page {
+    padding: 0.5rem;
   }
 }
