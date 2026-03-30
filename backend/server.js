@@ -13,6 +13,7 @@ const reportesRoutes = require('./routes/reportes');
 const dashboardRoutes = require('./routes/dashboard');
 const tiendasRoutes = require('./routes/tiendas');
 const listaComprasRoutes = require('./routes/listaCompras');
+const iaRoutes = require('./routes/ia');
 
 // Middlewares
 app.use(cors({
@@ -61,6 +62,7 @@ app.use('/api/reportes', reportesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/tiendas', tiendasRoutes);
 app.use('/api/lista-compras', listaComprasRoutes);
+app.use('/api/ia', iaRoutes);
 
 // Manejo centralizado de errores
 app.use((err, req, res, next) => {

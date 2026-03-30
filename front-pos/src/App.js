@@ -9,6 +9,7 @@ import { SettingsProvider } from './context/SettingsContext';
 import { RemindersProvider } from './context/RemindersContext';
 import RecordatoriosDrawer from './components/recordatorios/RecordatoriosDrawer';
 import RecordatoriosBanner from './components/recordatorios/RecordatoriosBanner';
+import AsistenteIA from './components/ia/AsistenteIA';
 import { useReminders } from './context/RemindersContext';
 import useDarkMode from './hooks/useDarkMode';
 
@@ -52,6 +53,7 @@ const AppInner = () => {
           </Routes>
         </Suspense>
       </ErrorBoundary>
+      <AsistenteIA />
     </Router>
   );
 };
