@@ -1,16 +1,18 @@
 .navbar {
-  position: sticky; 
+  position: sticky;
   width: 100%;
   top: 0;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   background-color: var(--navbar-fondo);
   color: var(--navbar-texto);
-  padding: 1rem 2rem;
+  padding: 0.75rem 2rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.327);
   font-weight: 500;
   z-index: 100;
+  gap: 0.5rem;
 }
 
 .navbar-brand {
@@ -20,6 +22,8 @@
   align-items: center;
   gap: 10px;
   color: var(--texto-invertido);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .navbar-brand img {
@@ -28,22 +32,27 @@
   object-fit: contain;
 }
 
+/* Links — horizontales en desktop */
 .navbar-links {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.1rem;
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .navbar-links a {
   color: var(--navbar-texto);
   text-decoration: none;
-  padding: 6px 12px;
+  padding: 6px 9px;
   border-radius: 6px;
   transition: background-color 0.2s ease, color 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 15px;
+  gap: 6px;
+  font-size: 13.5px;
   position: relative;
+  white-space: nowrap;
 }
 
 .navbar-links a:hover {
@@ -55,6 +64,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .navbar-bell {
@@ -95,4 +105,73 @@
 
 .navbar-badge--bell {
   background: var(--boton-primario);
+}
+
+/* Botón hamburguesa — oculto en desktop */
+.navbar-hamburger {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--navbar-texto);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.navbar-hamburger:hover {
+  background: var(--navbar-hover);
+}
+
+/* ── Mobile (<= 768px) ── */
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem 0;
+    align-items: center;
+  }
+
+  .navbar-brand {
+    flex: 1;
+  }
+
+  .navbar-hamburger {
+    display: flex;
+  }
+
+  /* Links ocultos por defecto, desplegables */
+  .navbar-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 0.5rem;
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .navbar-links a {
+    padding: 12px 1rem;
+    border-radius: 0;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 10px;
+    justify-content: flex-start;
+  }
+
+  .navbar-links a:last-child {
+    border-bottom: none;
+    margin-bottom: 0.25rem;
+  }
+
+  .navbar-right {
+    padding-bottom: 0.25rem;
+  }
 }

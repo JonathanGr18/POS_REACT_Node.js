@@ -157,6 +157,8 @@
 @media (max-width: 768px) {
   .productos-container {
     grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 1rem;
   }
 
   .botones-formularios {
@@ -166,6 +168,18 @@
 
   .botones-formularios button {
     flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .productos-container {
+    padding: 0.75rem;
+  }
+  .filtros-productos {
+    gap: 0.5rem;
+  }
+  .filtros-productos > * {
+    flex: 1 1 100%;
   }
 }
 

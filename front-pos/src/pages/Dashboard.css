@@ -25,6 +25,25 @@
   }
 }
 
+@media (max-width: 480px) {
+  .dashboard-page {
+    padding: 1rem;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .metrica-valor {
+    font-size: 1.8rem;
+  }
+  .metrica-card {
+    padding: 1rem;
+  }
+  .dashboard-seccion {
+    padding: 1rem;
+  }
+}
+
 /* ===== Tarjeta de métrica ===== */
 .metrica-card {
   background: var(--fondo-tarjeta);

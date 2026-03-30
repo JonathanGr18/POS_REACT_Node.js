@@ -130,3 +130,19 @@
 }
 
 .btn-eliminar-item:hover { background: var(--boton-peligro); color: white; }
+
+@media (max-width: 480px) {
+  .lista-compras-page {
+    padding: 1rem;
+  }
+  .lista-item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .lista-item-cantidad {
+    order: 3;
+  }
+  .btn-eliminar-item {
+    order: 4;
+  }
+}
