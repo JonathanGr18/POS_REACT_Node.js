@@ -29,72 +29,133 @@ const queryVentasConProductos = async (whereClause, params) => {
   return result.rows;
 };
 
+// Helper: redondeo a centavos para evitar float precision
+const round2 = (n) => Math.round(Number(n) * 100) / 100;
+
 // Registrar una venta con productos
 exports.registrarVenta = async (req, res, next) => {
-  const { total, productos, descuento = 0, monto_recibido = 0, metodo_pago = 'efectivo' } = req.body;
+  const { productos, descuento = 0, monto_recibido = 0, metodo_pago = 'efectivo' } = req.body || {};
   const metodosValidos = ['efectivo', 'tarjeta', 'transferencia'];
   const metodo = metodosValidos.includes(metodo_pago) ? metodo_pago : 'efectivo';
 
   if (!productos || !Array.isArray(productos) || productos.length === 0) {
     return res.status(400).json({ error: 'Se requiere al menos un producto' });
   }
-  if (total === undefined || isNaN(total) || Number(total) <= 0) {
-    return res.status(400).json({ error: 'Total inválido' });
+  // Validar descuento (numérico, no negativo)
+  if (isNaN(descuento) || Number(descuento) < 0) {
+    return res.status(400).json({ error: 'Descuento inválido' });
   }
+  if (!Number.isFinite(Number(descuento)) || Number(descuento) > 999999) {
+    return res.status(400).json({ error: 'Descuento fuera de rango' });
+  }
+  // Validar monto_recibido (numérico, no negativo, tope razonable)
+  const montoRecibidoNum = Number(monto_recibido);
+  if (isNaN(montoRecibidoNum) || montoRecibidoNum < 0) {
+    return res.status(400).json({ error: 'Monto recibido inválido' });
+  }
+  if (montoRecibidoNum > 9999999) {
+    return res.status(400).json({ error: 'Monto recibido fuera de rango' });
+  }
+  // Limitar tamaño del carrito para evitar DoS
+  if (productos.length > 200) {
+    return res.status(400).json({ error: 'Demasiados productos en una sola venta' });
+  }
+
+  // Consolidar productos duplicados por id (evita saltarse validacion de stock)
+  const consolidados = new Map();
+  for (const p of productos) {
+    // Validación estricta: id debe ser entero válido (no acepta "5abc")
+    const idNum = Number(p?.id);
+    if (!Number.isInteger(idNum) || idNum <= 0) {
+      return res.status(400).json({ error: 'Producto con id inválido' });
+    }
+    const id = idNum;
+    const cantidad = Number(p?.cantidad);
+    if (isNaN(cantidad) || cantidad <= 0) {
+      return res.status(400).json({ error: 'Producto con cantidad inválida' });
+    }
+    if (!Number.isInteger(cantidad)) {
+      return res.status(400).json({ error: 'La cantidad debe ser un número entero' });
+    }
+    if (cantidad > 10000) {
+      return res.status(400).json({ error: 'Cantidad fuera de rango' });
+    }
+    consolidados.set(id, (consolidados.get(id) || 0) + cantidad);
+  }
+
+  // Lista ordenada por id para evitar deadlocks (mismo orden de locks en transacciones concurrentes)
+  const idsOrdenados = [...consolidados.keys()].sort((a, b) => a - b);
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    // Validar stock suficiente ANTES de registrar (con FOR UPDATE para evitar race condition)
-    for (const producto of productos) {
-      if (!producto.id || isNaN(parseInt(producto.id, 10))) {
-        throw { status: 400, message: 'ID de producto inválido' };
-      }
-      if (!producto.nombre || producto.nombre.toString().trim() === '') {
-        throw { status: 400, message: 'Nombre de producto requerido' };
-      }
-      if (isNaN(producto.cantidad) || Number(producto.cantidad) <= 0) {
-        throw { status: 400, message: 'Cantidad de producto inválida' };
-      }
-      if (isNaN(producto.precio) || Number(producto.precio) < 0) {
-        throw { status: 400, message: 'Precio de producto inválido' };
-      }
-
-      const stockResult = await client.query(
-        'SELECT stock FROM productos WHERE id = $1 FOR UPDATE',
-        [parseInt(producto.id, 10)]
+    // Leer productos desde BD en orden de id (evita deadlocks con transacciones concurrentes)
+    const productosValidados = [];
+    let totalCalculado = 0;
+    for (const id of idsOrdenados) {
+      const cantidad = consolidados.get(id);
+      const prodResult = await client.query(
+        'SELECT id, nombre, precio, stock FROM productos WHERE id = $1 FOR UPDATE',
+        [id]
       );
-      if (!stockResult.rows[0]) {
-        throw { status: 404, message: `Producto ${producto.id} no encontrado` };
+      if (!prodResult.rows[0]) {
+        throw { status: 404, message: `Producto ${id} no encontrado` };
       }
-      // BUG FIX: Castear cantidad a número para evitar comparación string vs number
-      if (stockResult.rows[0].stock < Number(producto.cantidad)) {
-        throw { status: 400, message: `Stock insuficiente para "${producto.nombre}"` };
+      const prodDB = prodResult.rows[0];
+      if (Number(prodDB.stock) < cantidad) {
+        throw { status: 400, message: `Stock insuficiente para "${prodDB.nombre}"` };
       }
+      productosValidados.push({
+        id: prodDB.id,
+        nombre: prodDB.nombre,
+        precio: round2(prodDB.precio),
+        cantidad,
+      });
+      totalCalculado = round2(totalCalculado + round2(prodDB.precio) * cantidad);
     }
 
-    // Insertar venta
+    // Clampar descuento al total calculado (no permitir guardar descuento > total)
+    const descuentoNum = round2(Math.min(Number(descuento) || 0, totalCalculado));
+    const totalFinal = round2(Math.max(0, totalCalculado - descuentoNum));
+
+    // Validar monto recibido para pagos en efectivo
+    if (metodo === 'efectivo' && montoRecibidoNum > 0 && montoRecibidoNum < totalFinal) {
+      throw { status: 400, message: 'Monto recibido menor al total' };
+    }
+
+    // Insertar venta (usar total calculado servidor, no del cliente)
     const ventaResult = await client.query(
-      'INSERT INTO ventas (fecha, total, descuento, monto_recibido, metodo_pago) VALUES (CURRENT_TIMESTAMP, $1, $2, $3, $4) RETURNING id',
-      [total, descuento, monto_recibido, metodo]
+      'INSERT INTO ventas (fecha, total, descuento, monto_recibido, metodo_pago) VALUES (CURRENT_TIMESTAMP, $1, $2, $3, $4) RETURNING id, fecha',
+      [totalFinal, descuentoNum, montoRecibidoNum, metodo]
     );
     const ventaId = ventaResult.rows[0].id;
+    const fechaVenta = ventaResult.rows[0].fecha;
 
-    // Insertar detalles y actualizar stock
-    for (const producto of productos) {
+    // Insertar detalles y actualizar stock con WHERE defensivo (anti-race)
+    for (const p of productosValidados) {
       await client.query(
         'INSERT INTO detalle_venta (venta_id, nombre, cantidad, precio) VALUES ($1, $2, $3, $4)',
-        [ventaId, producto.nombre.toString().trim(), producto.cantidad, producto.precio]
+        [ventaId, p.nombre, p.cantidad, p.precio]
       );
-      await client.query(
-        'UPDATE productos SET stock = stock - $1 WHERE id = $2',
-        [producto.cantidad, producto.id]
+      const updateResult = await client.query(
+        'UPDATE productos SET stock = stock - $1 WHERE id = $2 AND stock >= $1',
+        [p.cantidad, p.id]
       );
+      if (updateResult.rowCount !== 1) {
+        // Si llegamos aqui, algo rompio la precondicion (otro proceso drenó stock)
+        throw { status: 409, message: `Stock cambió durante la transacción para "${p.nombre}", intenta de nuevo` };
+      }
     }
 
     await client.query('COMMIT');
-    res.status(201).json({ mensaje: 'Venta registrada con éxito', id: ventaId });
+    res.status(201).json({
+      mensaje: 'Venta registrada con éxito',
+      id: ventaId,
+      fecha: fechaVenta,
+      total: totalFinal,
+      descuento: descuentoNum,
+    });
 
   } catch (error) {
     await client.query('ROLLBACK');
@@ -117,10 +178,13 @@ exports.obtenerVentas = async (req, res, next) => {
   }
 };
 
-// Obtener ventas del día actual
+// Obtener ventas del día actual (TZ Mexico_City consistente con reportesCon)
 exports.obtenerVentasDelDia = async (req, res, next) => {
   try {
-    const ventas = await queryVentasConProductos('WHERE DATE(v.fecha) = CURRENT_DATE', []);
+    const ventas = await queryVentasConProductos(
+      "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date",
+      []
+    );
     res.json(ventas);
   } catch (error) {
     next(error);
@@ -130,7 +194,10 @@ exports.obtenerVentasDelDia = async (req, res, next) => {
 // Obtener ventas anteriores a hoy
 exports.obtenerVentasAnteriores = async (req, res, next) => {
   try {
-    const ventas = await queryVentasConProductos('WHERE DATE(v.fecha) < CURRENT_DATE', []);
+    const ventas = await queryVentasConProductos(
+      "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date < (NOW() AT TIME ZONE 'America/Mexico_City')::date",
+      []
+    );
     res.json(ventas);
   } catch (error) {
     next(error);
@@ -157,7 +224,7 @@ exports.obtenerVentasPorFecha = async (req, res, next) => {
 
   try {
     const ventas = await queryVentasConProductos(
-      'WHERE DATE(v.fecha) BETWEEN $1 AND $2',
+      "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date BETWEEN $1 AND $2",
       [desde, hasta]
     );
     res.json(ventas);

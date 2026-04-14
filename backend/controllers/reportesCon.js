@@ -1,5 +1,17 @@
 const pool = require('../config/db');
 
+// Helper: validar formato YYYY-MM-DD y rango sano
+const validarRango = (desde, hasta) => {
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!desde || !hasta) return 'Parámetros desde y hasta son requeridos';
+  if (!dateRegex.test(desde) || !dateRegex.test(hasta)) return 'Formato de fecha inválido (YYYY-MM-DD)';
+  const d1 = new Date(desde);
+  const d2 = new Date(hasta);
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 'Fecha inválida';
+  if (d1 > d2) return 'La fecha "desde" no puede ser posterior a "hasta"';
+  return null;
+};
+
 // Últimos 28 días (total por día) — con rango de fechas para mayor eficiencia
 exports.obtenerResumenDias = async (req, res, next) => {
   try {
@@ -102,18 +114,18 @@ exports.obtenerResumenMensual = async (req, res, next) => {
   try {
     const { rows } = await pool.query(`
       WITH ventas_por_mes AS (
-        SELECT (date_trunc('month', fecha))::date AS mes_inicio,
+        SELECT date_trunc('month', fecha AT TIME ZONE 'America/Mexico_City')::date AS mes_inicio,
                sum(total)                         AS ingresos,
-               count(DISTINCT fecha::date)        AS dias_con_ventas
+               count(DISTINCT (fecha AT TIME ZONE 'America/Mexico_City')::date) AS dias_con_ventas
         FROM public.ventas
-        WHERE fecha >= date_trunc('month', NOW()) - INTERVAL '11 months'
+        WHERE (fecha AT TIME ZONE 'America/Mexico_City') >= date_trunc('month', (NOW() AT TIME ZONE 'America/Mexico_City')) - INTERVAL '11 months'
         GROUP BY 1
       ),
       egresos_por_mes AS (
-        SELECT (date_trunc('month', fecha))::date AS mes_inicio,
+        SELECT date_trunc('month', fecha AT TIME ZONE 'America/Mexico_City')::date AS mes_inicio,
                sum(monto)                         AS egresos
         FROM public.egresos
-        WHERE fecha >= date_trunc('month', NOW()) - INTERVAL '11 months'
+        WHERE (fecha AT TIME ZONE 'America/Mexico_City') >= date_trunc('month', (NOW() AT TIME ZONE 'America/Mexico_City')) - INTERVAL '11 months'
         GROUP BY 1
       )
       SELECT
@@ -165,11 +177,12 @@ exports.obtenerReporteMensualPorMes = async (req, res, next) => {
       pool.query(
         `SELECT COALESCE(SUM(monto), 0) AS egresos
          FROM egresos
-         WHERE EXTRACT(MONTH FROM fecha) = $1 AND EXTRACT(YEAR FROM fecha) = $2`,
+         WHERE EXTRACT(MONTH FROM (fecha AT TIME ZONE 'America/Mexico_City')) = $1
+           AND EXTRACT(YEAR FROM (fecha AT TIME ZONE 'America/Mexico_City')) = $2`,
         [mes, year]
       ),
       pool.query(
-        `SELECT DISTINCT (fecha AT TIME ZONE 'America/Mexico_City')::date AS dia
+        `SELECT DISTINCT EXTRACT(DAY FROM (fecha AT TIME ZONE 'America/Mexico_City'))::int AS dia
          FROM ventas
          WHERE EXTRACT(MONTH FROM (fecha AT TIME ZONE 'America/Mexico_City')) = $1
            AND EXTRACT(YEAR FROM (fecha AT TIME ZONE 'America/Mexico_City')) = $2`,
@@ -181,7 +194,8 @@ exports.obtenerReporteMensualPorMes = async (req, res, next) => {
     const egresos  = parseFloat(egresosRows[0].egresos);
 
     const diasEnMes = new Date(year, mes, 0).getDate();
-    const diasConVentas = diasConRows.map(r => new Date(r.dia).getDate());
+    // Ya viene como int desde PG (no hay que parsear con new Date)
+    const diasConVentas = diasConRows.map(r => r.dia);
     const diasNoAbiertos = [];
     for (let d = 1; d <= diasEnMes; d++) {
       if (!diasConVentas.includes(d)) diasNoAbiertos.push(d);
@@ -233,6 +247,13 @@ exports.obtenerDiasNoAbiertos = async (req, res, next) => {
 // TOP PRODUCTOS por período
 exports.topProductos = async (req, res, next) => {
   const { desde, hasta, limite = 10 } = req.query;
+  // Si vienen ambas, validar formato
+  if (desde || hasta) {
+    const err = validarRango(desde, hasta);
+    if (err) return res.status(400).json({ error: err });
+  }
+  // Limite seguro
+  const limiteNum = Math.min(Math.max(parseInt(limite, 10) || 10, 1), 100);
   try {
     const params = [];
     let where = '';
@@ -240,9 +261,9 @@ exports.topProductos = async (req, res, next) => {
       where = "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date BETWEEN $1 AND $2";
       params.push(desde, hasta);
     } else {
-      // Default: último mes
       where = "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date >= (NOW() AT TIME ZONE 'America/Mexico_City')::date - INTERVAL '30 days'";
     }
+    params.push(limiteNum);
     const { rows } = await pool.query(`
       SELECT
         dv.nombre AS producto,
@@ -254,7 +275,7 @@ exports.topProductos = async (req, res, next) => {
       ${where}
       GROUP BY dv.nombre
       ORDER BY total_unidades DESC
-      LIMIT ${parseInt(limite, 10) || 10}
+      LIMIT $${params.length}
     `, params);
     res.json(rows);
   } catch (err) { next(err); }
@@ -263,7 +284,8 @@ exports.topProductos = async (req, res, next) => {
 // RESUMEN por rango de fechas
 exports.resumenPeriodo = async (req, res, next) => {
   const { desde, hasta } = req.query;
-  if (!desde || !hasta) return res.status(400).json({ error: 'Se requieren desde y hasta' });
+  const errMsg = validarRango(desde, hasta);
+  if (errMsg) return res.status(400).json({ error: errMsg });
   try {
     const [{ rows: dias }, { rows: resumen }] = await Promise.all([
       pool.query(
@@ -296,19 +318,19 @@ exports.mesesResumen = async (req, res, next) => {
   try {
     const { rows } = await pool.query(`
       WITH ventas_mes AS (
-        SELECT DATE_TRUNC('month', fecha) AS mes,
+        SELECT DATE_TRUNC('month', fecha AT TIME ZONE 'America/Mexico_City') AS mes,
                SUM(total)::float AS total_mes,
                COUNT(*)::int    AS num_ventas
         FROM ventas
-        WHERE fecha >= DATE_TRUNC('month', NOW()) - INTERVAL '11 months'
-        GROUP BY DATE_TRUNC('month', fecha)
+        WHERE (fecha AT TIME ZONE 'America/Mexico_City') >= DATE_TRUNC('month', NOW() AT TIME ZONE 'America/Mexico_City') - INTERVAL '11 months'
+        GROUP BY DATE_TRUNC('month', fecha AT TIME ZONE 'America/Mexico_City')
       ),
       egresos_mes AS (
-        SELECT DATE_TRUNC('month', fecha) AS mes,
+        SELECT DATE_TRUNC('month', fecha AT TIME ZONE 'America/Mexico_City') AS mes,
                SUM(monto)::float AS total_egresos
         FROM egresos
-        WHERE fecha >= DATE_TRUNC('month', NOW()) - INTERVAL '11 months'
-        GROUP BY DATE_TRUNC('month', fecha)
+        WHERE (fecha AT TIME ZONE 'America/Mexico_City') >= DATE_TRUNC('month', NOW() AT TIME ZONE 'America/Mexico_City') - INTERVAL '11 months'
+        GROUP BY DATE_TRUNC('month', fecha AT TIME ZONE 'America/Mexico_City')
       )
       SELECT
         TO_CHAR(v.mes, 'YYYY-MM')         AS mes,
@@ -327,6 +349,10 @@ exports.mesesResumen = async (req, res, next) => {
 // HORAS PICO — distribución de ventas por hora del día (en zona horaria local)
 exports.horasPico = async (req, res, next) => {
   const { desde, hasta } = req.query;
+  if (desde || hasta) {
+    const err = validarRango(desde, hasta);
+    if (err) return res.status(400).json({ error: err });
+  }
   try {
     let query, params = [];
     if (desde && hasta) {
@@ -355,6 +381,10 @@ exports.horasPico = async (req, res, next) => {
 // MÉTODOS DE PAGO — distribución por tipo (efectivo/tarjeta/transferencia)
 exports.metodosPago = async (req, res, next) => {
   const { desde, hasta } = req.query;
+  if (desde || hasta) {
+    const err = validarRango(desde, hasta);
+    if (err) return res.status(400).json({ error: err });
+  }
   try {
     let where = '';
     const params = [];
@@ -381,6 +411,10 @@ exports.metodosPago = async (req, res, next) => {
 // DIAS con query params opcionales (desde/hasta)
 exports.obtenerResumenDiasFiltrado = async (req, res, next) => {
   const { desde, hasta } = req.query;
+  if (desde || hasta) {
+    const err = validarRango(desde, hasta);
+    if (err) return res.status(400).json({ error: err });
+  }
   try {
     let query, params = [];
     if (desde && hasta) {

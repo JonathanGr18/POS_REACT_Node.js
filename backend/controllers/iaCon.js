@@ -21,10 +21,10 @@ async function obtenerContextoNegocio() {
     egresosDelMes,
     productosMasRentables
   ] = await Promise.all([
-    // 1. Ventas hoy
-    pool.query("SELECT COUNT(*)::int AS cantidad FROM ventas WHERE DATE(fecha) = CURRENT_DATE"),
+    // 1. Ventas hoy (TZ America/Mexico_City)
+    pool.query("SELECT COUNT(*)::int AS cantidad FROM ventas WHERE (fecha AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date"),
     // 2. Ingresos hoy
-    pool.query("SELECT COALESCE(SUM(total), 0)::float AS total FROM ventas WHERE DATE(fecha) = CURRENT_DATE"),
+    pool.query("SELECT COALESCE(SUM(total), 0)::float AS total FROM ventas WHERE (fecha AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date"),
     // 3. Total productos activos
     pool.query("SELECT COUNT(*)::int AS cantidad FROM productos WHERE status = true"),
     // 4. Stock crítico
@@ -33,23 +33,24 @@ async function obtenerContextoNegocio() {
     pool.query(`
       SELECT dv.nombre, SUM(dv.cantidad)::int AS total_vendido
       FROM detalle_venta dv JOIN ventas v ON v.id = dv.venta_id
-      WHERE DATE(v.fecha) = CURRENT_DATE
+      WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date
       GROUP BY dv.nombre ORDER BY total_vendido DESC LIMIT 5
     `),
-    // 6. Resumen mes actual
+    // 6. Resumen mes actual (TZ)
     pool.query(`
       SELECT COALESCE(SUM(total), 0)::float AS ingresos,
              COUNT(*)::int AS num_ventas,
              COALESCE(AVG(total), 0)::float AS ticket_promedio
-      FROM ventas WHERE fecha >= date_trunc('month', NOW())
+      FROM ventas
+      WHERE (fecha AT TIME ZONE 'America/Mexico_City') >= date_trunc('month', NOW() AT TIME ZONE 'America/Mexico_City')
     `),
     // 7. Resumen mes anterior (para comparar)
     pool.query(`
       SELECT COALESCE(SUM(total), 0)::float AS ingresos,
              COUNT(*)::int AS num_ventas
       FROM ventas
-      WHERE fecha >= date_trunc('month', NOW()) - INTERVAL '1 month'
-        AND fecha < date_trunc('month', NOW())
+      WHERE (fecha AT TIME ZONE 'America/Mexico_City') >= date_trunc('month', NOW() AT TIME ZONE 'America/Mexico_City') - INTERVAL '1 month'
+        AND (fecha AT TIME ZONE 'America/Mexico_City') <  date_trunc('month', NOW() AT TIME ZONE 'America/Mexico_City')
     `),
     // 8. Productos con poco stock (detallado)
     pool.query(`
@@ -57,13 +58,13 @@ async function obtenerContextoNegocio() {
       FROM productos WHERE stock <= 5 AND status = true
       ORDER BY stock ASC LIMIT 15
     `),
-    // 9. Productos sin movimiento en 30 días
+    // 9. Productos sin movimiento en 30 días (join por nombre, detalle_venta no tiene producto_id)
     pool.query(`
       SELECT p.nombre, p.stock, p.precio::float AS precio
       FROM productos p
       WHERE p.status = true
-        AND p.id NOT IN (
-          SELECT DISTINCT dv.producto_id FROM detalle_venta dv
+        AND p.nombre NOT IN (
+          SELECT DISTINCT dv.nombre FROM detalle_venta dv
           JOIN ventas v ON v.id = dv.venta_id
           WHERE v.fecha >= NOW() - INTERVAL '30 days'
         )
@@ -74,10 +75,10 @@ async function obtenerContextoNegocio() {
       SELECT dv.nombre, SUM(dv.cantidad)::int AS unidades,
              SUM(dv.cantidad * dv.precio)::float AS ingresos
       FROM detalle_venta dv JOIN ventas v ON v.id = dv.venta_id
-      WHERE v.fecha >= date_trunc('month', NOW())
+      WHERE (v.fecha AT TIME ZONE 'America/Mexico_City') >= date_trunc('month', NOW() AT TIME ZONE 'America/Mexico_City')
       GROUP BY dv.nombre ORDER BY unidades DESC LIMIT 10
     `),
-    // 11. Ticket promedio últimos 7 días
+    // 11. Ticket promedio últimos 7 días (ventana movil OK sin TZ)
     pool.query(`
       SELECT COALESCE(AVG(total), 0)::float AS promedio,
              COALESCE(MAX(total), 0)::float AS maximo,
@@ -87,7 +88,8 @@ async function obtenerContextoNegocio() {
     // 12. Ventas por método de pago (mes actual)
     pool.query(`
       SELECT metodo_pago, COUNT(*)::int AS num_ventas, SUM(total)::float AS total
-      FROM ventas WHERE fecha >= date_trunc('month', NOW())
+      FROM ventas
+      WHERE (fecha AT TIME ZONE 'America/Mexico_City') >= date_trunc('month', NOW() AT TIME ZONE 'America/Mexico_City')
       GROUP BY metodo_pago ORDER BY total DESC
     `),
     // 13. Distribución por hora (últimos 30 días)
@@ -100,14 +102,15 @@ async function obtenerContextoNegocio() {
     // 14. Egresos del mes
     pool.query(`
       SELECT COALESCE(SUM(monto), 0)::float AS total_egresos, COUNT(*)::int AS num_egresos
-      FROM egresos WHERE fecha >= date_trunc('month', NOW())
+      FROM egresos
+      WHERE (fecha AT TIME ZONE 'America/Mexico_City') >= date_trunc('month', NOW() AT TIME ZONE 'America/Mexico_City')
     `),
     // 15. Productos más rentables del mes (por ingreso total)
     pool.query(`
       SELECT dv.nombre, SUM(dv.cantidad * dv.precio)::float AS ingreso_total,
              SUM(dv.cantidad)::int AS unidades
       FROM detalle_venta dv JOIN ventas v ON v.id = dv.venta_id
-      WHERE v.fecha >= date_trunc('month', NOW())
+      WHERE (v.fecha AT TIME ZONE 'America/Mexico_City') >= date_trunc('month', NOW() AT TIME ZONE 'America/Mexico_City')
       GROUP BY dv.nombre ORDER BY ingreso_total DESC LIMIT 10
     `)
   ]);
@@ -144,11 +147,26 @@ async function obtenerContextoNegocio() {
 
 exports.chat = async (req, res, next) => {
   try {
-    const { mensaje, historial = [] } = req.body;
+    const { mensaje, historial = [] } = req.body || {};
 
     if (!mensaje || typeof mensaje !== 'string' || mensaje.trim().length === 0) {
       return res.status(400).json({ error: 'El mensaje es requerido' });
     }
+    // Limitar longitud del mensaje (backend no puede confiar en limit del frontend)
+    if (mensaje.length > 2000) {
+      return res.status(400).json({ error: 'Mensaje demasiado largo (máx 2000 caracteres)' });
+    }
+
+    // Sanitizar historial: solo roles user/assistant, content string, max 10 items
+    const historialSanitizado = Array.isArray(historial)
+      ? historial
+          .filter(m => m && typeof m === 'object'
+            && (m.role === 'user' || m.role === 'assistant')
+            && typeof m.content === 'string'
+            && m.content.length > 0
+            && m.content.length <= 2000)
+          .slice(-10)
+      : [];
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
@@ -156,6 +174,9 @@ exports.chat = async (req, res, next) => {
     }
 
     const contexto = await obtenerContextoNegocio();
+
+    // Helper local para formatear numeros de forma segura (evita crash si hay null)
+    const n = (v, dec = 2) => (Number(v) || 0).toFixed(dec);
 
     const systemPrompt = `Eres "POS Expert", un consultor de negocios especializado en papelerías y negocios minoristas en México.
 Tienes 15 años de experiencia ayudando papelerías a crecer, optimizar inventario y maximizar ganancias.
@@ -177,41 +198,41 @@ CONOCIMIENTO EXPERTO EN PAPELERÍAS:
 DATOS EN TIEMPO REAL DEL NEGOCIO:
 
 📊 HOY:
-- Ventas: ${contexto.ventasHoy} transacciones por $${contexto.ingresosHoy.toFixed(2)} MXN
-- Productos más vendidos hoy: ${contexto.topProductosHoy.map(p => `${p.nombre} (${p.total_vendido} uds)`).join(', ') || 'Sin ventas aún'}
+- Ventas: ${contexto.ventasHoy} transacciones por $${n(contexto.ingresosHoy)} MXN
+- Productos más vendidos hoy: ${(contexto.topProductosHoy || []).map(p => `${p.nombre} (${p.total_vendido} uds)`).join(', ') || 'Sin ventas aún'}
 
 📈 MES ACTUAL:
-- Ingresos: $${contexto.ingresosMes.toFixed(2)} MXN en ${contexto.ventasMes} ventas
-- Ticket promedio: $${contexto.ticketPromedioMes.toFixed(2)} MXN
-- Egresos: $${contexto.egresosDelMes.total_egresos.toFixed(2)} MXN (${contexto.egresosDelMes.num_egresos} registros)
-- Ganancia estimada: $${(contexto.ingresosMes - contexto.egresosDelMes.total_egresos).toFixed(2)} MXN
+- Ingresos: $${n(contexto.ingresosMes)} MXN en ${contexto.ventasMes} ventas
+- Ticket promedio: $${n(contexto.ticketPromedioMes)} MXN
+- Egresos: $${n(contexto.egresosDelMes?.total_egresos)} MXN (${contexto.egresosDelMes?.num_egresos || 0} registros)
+- Ganancia estimada: $${n(Number(contexto.ingresosMes) - Number(contexto.egresosDelMes?.total_egresos || 0))} MXN
 ${contexto.crecimientoVsMesAnterior !== null ? `- Crecimiento vs mes anterior: ${contexto.crecimientoVsMesAnterior}%` : '- Sin datos del mes anterior para comparar'}
 
 📊 MES ANTERIOR:
-- Ingresos: $${contexto.ingresosMesAnterior.toFixed(2)} MXN en ${contexto.ventasMesAnterior} ventas
+- Ingresos: $${n(contexto.ingresosMesAnterior)} MXN en ${contexto.ventasMesAnterior} ventas
 
 🏆 TOP 10 PRODUCTOS MÁS VENDIDOS (mes actual):
-${contexto.topProductosMes.map((p, i) => `${i + 1}. ${p.nombre}: ${p.unidades} uds → $${p.ingresos.toFixed(2)}`).join('\n') || 'Sin datos'}
+${(contexto.topProductosMes || []).map((p, i) => `${i + 1}. ${p.nombre}: ${p.unidades} uds → $${n(p.ingresos)}`).join('\n') || 'Sin datos'}
 
 💰 PRODUCTOS MÁS RENTABLES (por ingreso total, mes actual):
-${contexto.productosMasRentables.map((p, i) => `${i + 1}. ${p.nombre}: $${p.ingreso_total.toFixed(2)} (${p.unidades} uds)`).join('\n') || 'Sin datos'}
+${(contexto.productosMasRentables || []).map((p, i) => `${i + 1}. ${p.nombre}: $${n(p.ingreso_total)} (${p.unidades} uds)`).join('\n') || 'Sin datos'}
 
 🎯 TICKET PROMEDIO (últimos 7 días):
-- Promedio: $${contexto.ticketPromedio7dias.promedio.toFixed(2)} | Máximo: $${contexto.ticketPromedio7dias.maximo.toFixed(2)} | Mínimo: $${contexto.ticketPromedio7dias.minimo.toFixed(2)}
+- Promedio: $${n(contexto.ticketPromedio7dias?.promedio)} | Máximo: $${n(contexto.ticketPromedio7dias?.maximo)} | Mínimo: $${n(contexto.ticketPromedio7dias?.minimo)}
 
 💳 MÉTODOS DE PAGO (mes actual):
-${contexto.ventasPorMetodo.map(m => `- ${m.metodo_pago || 'No especificado'}: ${m.num_ventas} ventas → $${m.total.toFixed(2)}`).join('\n') || 'Sin datos'}
+${(contexto.ventasPorMetodo || []).map(m => `- ${m.metodo_pago || 'No especificado'}: ${m.num_ventas} ventas → $${n(m.total)}`).join('\n') || 'Sin datos'}
 
 ⏰ HORAS PICO (últimos 30 días, top 5):
-${contexto.horasPico.map(h => `- ${h.hora}:00 hrs: ${h.num_ventas} ventas`).join('\n') || 'Sin datos'}
+${(contexto.horasPico || []).map(h => `- ${h.hora}:00 hrs: ${h.num_ventas} ventas`).join('\n') || 'Sin datos'}
 
 📦 INVENTARIO:
 - Total productos activos: ${contexto.totalProductos}
 - Productos con stock crítico (≤5 unidades): ${contexto.stockCritico}
-- Detalle stock bajo: ${contexto.productosPocoStock.map(p => `${p.nombre} (stock: ${p.stock}, precio: $${p.precio.toFixed(2)})`).join(', ') || 'Ninguno'}
+- Detalle stock bajo: ${(contexto.productosPocoStock || []).map(p => `${p.nombre} (stock: ${p.stock}, precio: $${n(p.precio)})`).join(', ') || 'Ninguno'}
 
 ⚠️ PRODUCTOS SIN MOVIMIENTO (30 días sin venderse):
-${contexto.productosSinMovimiento.map(p => `- ${p.nombre} (stock: ${p.stock}, precio: $${p.precio.toFixed(2)})`).join('\n') || 'Todos los productos tuvieron movimiento'}
+${(contexto.productosSinMovimiento || []).map(p => `- ${p.nombre} (stock: ${p.stock}, precio: $${n(p.precio)})`).join('\n') || 'Todos los productos tuvieron movimiento'}
 
 INSTRUCCIONES DE RESPUESTA:
 1. Analiza los datos antes de responder
@@ -226,27 +247,42 @@ INSTRUCCIONES DE RESPUESTA:
 
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...historial.slice(-10),
+      ...historialSanitizado,
       { role: 'user', content: mensaje.trim() }
     ];
 
-    const response = await fetch(DEEPSEEK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages,
-        max_tokens: 2048,
-        temperature: 0.7
-      })
-    });
+    // Timeout de 30s para evitar requests colgados
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    let response;
+    try {
+      response = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages,
+          max_tokens: 2048,
+          temperature: 0.7
+        }),
+        signal: controller.signal
+      });
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        return res.status(504).json({ error: 'Timeout al comunicarse con DeepSeek' });
+      }
+      throw err;
+    }
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('[DeepSeek Error]', response.status, errorData);
+      // No exponer errorData al cliente (puede tener info sensible)
+      console.error('[DeepSeek Error]', response.status);
       return res.status(502).json({ error: 'Error al comunicarse con DeepSeek' });
     }
 

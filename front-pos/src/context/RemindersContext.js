@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 
 const STORAGE_KEY = 'pos_recordatorios';
 
@@ -25,27 +25,40 @@ export const RemindersProvider = ({ children }) => {
   const [descartados, setDescartados] = useState(new Set());
   const [drawerAbierto, setDrawerAbierto] = useState(false);
 
-  const pendientes = recordatorios.filter(r => esDueHoy(r) && !descartados.has(r.id));
+  // Memo: evita recalculo innecesario en cada render
+  const pendientes = useMemo(
+    () => recordatorios.filter(r => esDueHoy(r) && !descartados.has(r.id)),
+    [recordatorios, descartados]
+  );
 
-  const save = useCallback((lista) => {
-    setRecordatorios(lista);
+  // Persistencia centralizada (acepta lista directa, usa updater cuando es posible)
+  const persistir = (lista) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+    return lista;
+  };
+
+  // Usa setRecordatorios(prev => ...) para evitar closures stale en batch updates
+  const agregar = useCallback((datos) => {
+    setRecordatorios(prev => persistir([
+      ...prev,
+      { ...datos, id: Date.now().toString() + Math.random().toString(36).slice(2, 6), activo: true }
+    ]));
   }, []);
 
-  const agregar = useCallback((datos) => {
-    save([...recordatorios, { ...datos, id: Date.now().toString(), activo: true }]);
-  }, [recordatorios, save]);
-
   const actualizar = useCallback((id, datos) => {
-    save(recordatorios.map(r => r.id === id ? { ...r, ...datos } : r));
-  }, [recordatorios, save]);
+    setRecordatorios(prev => persistir(prev.map(r => r.id === id ? { ...r, ...datos } : r)));
+  }, []);
 
   const eliminar = useCallback((id) => {
-    save(recordatorios.filter(r => r.id !== id));
-  }, [recordatorios, save]);
+    setRecordatorios(prev => persistir(prev.filter(r => r.id !== id)));
+  }, []);
 
   const descartar = useCallback((id) => {
-    setDescartados(prev => new Set([...prev, id]));
+    setDescartados(prev => {
+      const nuevo = new Set(prev);
+      nuevo.add(id);
+      return nuevo;
+    });
   }, []);
 
   const abrirDrawer  = useCallback(() => setDrawerAbierto(true),  []);

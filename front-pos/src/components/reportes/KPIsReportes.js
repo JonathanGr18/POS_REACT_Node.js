@@ -2,7 +2,13 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import './KPIsReportes.css';
 
-const toISO = (d) => d.toISOString().slice(0, 10);
+// Formato YYYY-MM-DD en zona local (evita off-by-one en TZ negativas)
+const toISO = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 
 const pctChange = (actual, anterior) => {
   if (!anterior || anterior === 0) return null;
@@ -15,22 +21,26 @@ const KPIsReportes = ({ desde, hasta }) => {
 
   useEffect(() => {
     if (!desde || !hasta) return;
+    let cancelado = false;
     setData(null);
     setPrev(null);
 
     // Período actual
     api.get(`/reportes/resumen-periodo?desde=${desde}&hasta=${hasta}`)
-      .then(res => setData(res.data))
-      .catch(() => setData(null));
+      .then(res => { if (!cancelado) setData(res.data); })
+      .catch(() => { if (!cancelado) setData(null); });
 
-    // Período anterior (mismo rango hacia atrás)
-    // +1 día porque el rango actual es [desde, hasta] inclusive (hasta - desde + 1 días)
-    const durMs = new Date(hasta) - new Date(desde) + 86400000;
-    const prevHasta = toISO(new Date(new Date(desde) - 86400000));
-    const prevDesde = toISO(new Date(new Date(desde) - durMs));
+    // Período anterior (usar T12:00:00 para evitar problemas de TZ)
+    const desdeD = new Date(desde + 'T12:00:00');
+    const hastaD = new Date(hasta + 'T12:00:00');
+    const durMs = hastaD - desdeD + 86400000;
+    const prevHasta = toISO(new Date(desdeD.getTime() - 86400000));
+    const prevDesde = toISO(new Date(desdeD.getTime() - durMs));
     api.get(`/reportes/resumen-periodo?desde=${prevDesde}&hasta=${prevHasta}`)
-      .then(res => setPrev(res.data))
-      .catch(() => setPrev(null));
+      .then(res => { if (!cancelado) setPrev(res.data); })
+      .catch(() => { if (!cancelado) setPrev(null); });
+
+    return () => { cancelado = true; };
   }, [desde, hasta]);
 
   if (!data) return null;

@@ -55,6 +55,13 @@
   white-space: nowrap;
 }
 
+.navbar-links a.nav-activo {
+  background-color: var(--navbar-hover);
+  color: var(--texto-invertido);
+  font-weight: 700;
+  box-shadow: inset 0 -3px 0 var(--boton-primario, #9967CE);
+}
+
 .navbar-links a:hover {
   background-color: var(--navbar-hover);
   color: var(--texto-invertido);

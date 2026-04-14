@@ -88,3 +88,179 @@
   color: var(--texto-secundario);
   font-style: italic;
 }
+
+/* Imagen en tabla */
+.td-imagen {
+  text-align: center;
+  vertical-align: middle;
+  width: 70px;
+}
+
+.producto-img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+  margin: 0 auto;
+}
+
+.producto-img-placeholder {
+  font-size: 1.8rem;
+}
+
+.td-precio {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Badge de categoría */
+.badge-categoria {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: var(--boton-primario);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Badge de margen */
+.badge-margen {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.margen-pos {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.margen-neg {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* ── Acciones ── */
+.td-acciones {
+  white-space: nowrap;
+  position: relative;
+}
+
+.td-nombre {
+  font-weight: 500;
+}
+
+/* Resurtir inline */
+.resurtir-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.resurtir-input {
+  width: 60px;
+  padding: 4px 6px;
+  font-size: 13px;
+  border: 1px solid var(--fondo-borde);
+  border-radius: 4px;
+  background: var(--fondo-tarjeta);
+  color: var(--texto-principal);
+}
+
+.btn-success-sm {
+  background-color: #27ae60 !important;
+  color: white !important;
+  padding: 4px 8px !important;
+  font-size: 14px !important;
+  font-weight: bold;
+}
+
+.btn-cancel-sm {
+  background-color: #95a5a6 !important;
+  color: white !important;
+  padding: 4px 8px !important;
+  font-size: 14px !important;
+}
+
+.btn-resurtir {
+  background-color: #27ae60 !important;
+  color: white !important;
+}
+.btn-resurtir:hover {
+  background-color: #219a52 !important;
+}
+
+/* ── Menú contextual ── */
+.menu-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 90;
+}
+
+.menu-contextual-wrap {
+  display: inline-block;
+  position: relative;
+}
+
+.btn-menu {
+  background-color: var(--fondo-principal) !important;
+  color: var(--texto-secundario) !important;
+  border: 1px solid var(--fondo-borde) !important;
+}
+.btn-menu:hover {
+  background-color: var(--fondo-borde) !important;
+}
+
+.menu-contextual {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 100;
+  min-width: 180px;
+  padding: 4px 0;
+  animation: menuFadeIn 0.15s ease;
+}
+
+@keyframes menuFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menu-contextual button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  color: var(--texto-principal);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-contextual button:hover {
+  background-color: var(--fondo-principal);
+}
+
+.menu-contextual hr {
+  border: none;
+  border-top: 1px solid var(--fondo-borde);
+  margin: 4px 0;
+}
+
+.menu-item-danger {
+  color: var(--boton-peligro) !important;
+}
+.menu-item-danger:hover {
+  background-color: #fef2f2 !important;
+}

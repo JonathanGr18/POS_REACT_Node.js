@@ -11,14 +11,19 @@ const AgregarEgresoForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!monto || isNaN(monto) || parseFloat(monto) <= 0) {
+    const montoNum = parseFloat(monto);
+    if (!monto || isNaN(montoNum) || montoNum <= 0) {
       addToast('Ingresa un monto válido mayor a cero', 'aviso');
+      return;
+    }
+    if (montoNum > 999999.99) {
+      addToast('El monto es demasiado alto', 'aviso');
       return;
     }
 
     setCargando(true);
     try {
-      await api.post('/productos/egresos', { monto, concepto: concepto.trim() || null });
+      await api.post('/egresos', { monto: montoNum, concepto: concepto.trim() || null });
       addToast('Egreso registrado correctamente', 'exito');
       setMonto('');
       setConcepto('');
@@ -40,6 +45,8 @@ const AgregarEgresoForm = () => {
           className="input"
           value={monto}
           onChange={e => setMonto(e.target.value)}
+          min="0"
+          step="0.01"
         />
         <input
           type="text"

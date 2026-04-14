@@ -21,6 +21,52 @@
   white-space: nowrap;
 }
 
+.reportes-titulo-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.reportes-export-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-export-pdf,
+.btn-export-csv {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.btn-export-pdf {
+  background: var(--boton-primario);
+  color: white;
+}
+
+.btn-export-csv {
+  background: #27ae60;
+  color: white;
+}
+
+.btn-export-pdf:disabled,
+.btn-export-csv:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-export-pdf:not(:disabled):hover,
+.btn-export-csv:not(:disabled):hover {
+  filter: brightness(1.1);
+}
+
 /* ── Filtro período ── */
 .filtro-periodo {
   display: flex;

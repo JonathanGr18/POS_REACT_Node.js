@@ -1,0 +1,91 @@
+.resumen-caja {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.rc-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 14px;
+  background: var(--fondo-tarjeta);
+  border-radius: 8px;
+  border: 1px solid var(--fondo-borde);
+  min-width: 90px;
+}
+
+.rc-item--principal {
+  border-color: var(--boton-primario);
+  background: color-mix(in srgb, var(--boton-primario) 8%, var(--fondo-tarjeta));
+}
+
+.rc-valor {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--texto-principal);
+}
+
+.rc-label {
+  font-size: 0.65rem;
+  color: var(--texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.rc-item--ganancia {
+  border-color: #27ae60;
+  background: color-mix(in srgb, #27ae60 8%, var(--fondo-tarjeta));
+}
+
+.rc-item--ganancia .rc-valor {
+  color: #27ae60;
+}
+
+.rc-item--perdida {
+  border-color: #e74c3c;
+  background: color-mix(in srgb, #e74c3c 8%, var(--fondo-tarjeta));
+}
+
+.rc-item--perdida .rc-valor {
+  color: #e74c3c;
+}
+
+/* Métodos de pago horizontal */
+.rc-item--metodos {
+  flex-direction: row;
+  gap: 12px;
+  padding: 8px 14px;
+}
+
+.rc-metodo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rc-metodo-valor {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--texto-principal);
+}
+
+.rc-metodo-label {
+  font-size: 0.6rem;
+  color: var(--texto-secundario);
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .resumen-caja {
+    gap: 0.4rem;
+  }
+  .rc-item {
+    padding: 4px 8px;
+    min-width: 70px;
+  }
+}

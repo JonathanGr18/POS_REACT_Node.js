@@ -1,3 +1,107 @@
+/* ======== Utilidades de accesibilidad ======== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link para teclado */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--boton-primario, #9967CE);
+  color: white;
+  padding: 8px 16px;
+  z-index: 10000;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Focus visible consistente (accesibilidad) */
+:focus-visible {
+  outline: 2px solid var(--boton-primario, #9967CE);
+  outline-offset: 2px;
+}
+
+/* Imagenes responsive por defecto */
+img { max-width: 100%; height: auto; }
+
+/* Respetar prefers-reduced-motion (a11y) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles basicos */
+@media print {
+  .navbar,
+  .skip-link,
+  .toast-container,
+  .btn,
+  button:not(.print-visible),
+  .filtros-productos,
+  .productos-header-acciones,
+  .paginacion,
+  .falt-acciones,
+  .reportes-export-btns,
+  .drawer-overlay,
+  .drawer-panel,
+  .modal-overlay {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .tabla, table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+}
+
+/* Evitar zoom automatico de iOS en inputs < 16px */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="password"],
+  input[type="email"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="date"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Touch targets minimos (WCAG 2.5.5) */
+  button, .btn, a[role="button"] {
+    min-height: 44px;
+  }
+  .qty-btn, .btn-metodo, .btn-moneda {
+    min-height: 40px;
+    min-width: 40px;
+  }
+}
+
 /* ======== Colores base ======== */
 :root {
   /* ======= Colores base ======= */

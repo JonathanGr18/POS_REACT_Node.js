@@ -8,7 +8,7 @@ const Tabla = ({ columnas = [], datos = [], renderFila }) => {
         <thead>
           <tr>
             {columnas.map((col, idx) => (
-              <th key={idx}>{col}</th>
+              <th key={idx} scope="col">{col}</th>
             ))}
           </tr>
         </thead>

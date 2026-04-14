@@ -5,7 +5,13 @@ import './HeatmapAnual.css';
 const DIAS_LABEL = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const MESES_CORTOS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-const toISO = (d) => d.toISOString().slice(0, 10);
+// Formato YYYY-MM-DD en zona local (evita off-by-one en TZ negativas como MX)
+const toISO = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
 const COLORES = [
   'var(--fondo-borde)',

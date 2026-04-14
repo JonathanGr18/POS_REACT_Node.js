@@ -62,8 +62,7 @@ textarea.floating-input {
 
 /* Activar flotante */
 .floating-input:focus + .floating-label,
-.floating-input:not(:placeholder-shown) + .floating-label,
-textarea.floating-input:valid + .floating-label {
+.floating-input:not(:placeholder-shown) + .floating-label {
   top: -10px;
   font-size: 12px;
   color: var(--boton-primario);
@@ -87,4 +86,61 @@ textarea.floating-input:valid + .floating-label {
 
 .btn-formulario:hover {
   background-color: var(--boton-primario-hover);
+}
+
+/* Selector de categoría */
+select.floating-input {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.floating-label--select {
+  top: -10px !important;
+  font-size: 12px !important;
+  color: var(--boton-primario) !important;
+}
+
+.btn-cat-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--boton-primario);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.btn-cat-toggle:hover {
+  background: var(--boton-primario-hover);
+}
+
+/* Margen de ganancia */
+.margen-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: var(--fondo-principal);
+  font-size: 14px;
+}
+
+.margen-label {
+  color: var(--texto-secundario);
+  font-weight: 500;
+}
+
+.margen-positivo {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.margen-negativo {
+  color: #e74c3c;
+  font-weight: bold;
 }

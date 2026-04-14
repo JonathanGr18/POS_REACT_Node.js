@@ -16,18 +16,31 @@ const getTiendas = async (req, res, next) => {
   }
 };
 
+// Helper de validación local
+const str = (val, max, requerido = false) => {
+  if (val == null || val === '') {
+    if (requerido) throw Object.assign(new Error('Campo requerido'), { status: 400 });
+    return null;
+  }
+  if (typeof val !== 'string') throw Object.assign(new Error('Campo inválido (debe ser texto)'), { status: 400 });
+  const limpio = val.replace(/\x00/g, '').trim();
+  if (limpio === '' && requerido) throw Object.assign(new Error('Campo requerido'), { status: 400 });
+  if (limpio.length > max) throw Object.assign(new Error(`Campo demasiado largo (máx ${max})`), { status: 400 });
+  return limpio;
+};
+
 // POST /tiendas — crear tienda
 const createTienda = async (req, res, next) => {
   try {
-    const nombre = req.body.nombre ? req.body.nombre.trim() : '';
-    const direccion = req.body.direccion ? req.body.direccion.trim() : null;
-    const telefono = req.body.telefono ? req.body.telefono.trim() : null;
-    const notas = req.body.notas ? req.body.notas.trim() : null;
-
-    if (!nombre) {
-      const err = new Error('El nombre de la tienda es requerido');
-      err.status = 400;
-      return next(err);
+    const body = req.body || {};
+    let nombre, direccion, telefono, notas;
+    try {
+      nombre = str(body.nombre, 200, true);
+      direccion = str(body.direccion, 300);
+      telefono = str(body.telefono, 50);
+      notas = str(body.notas, 500);
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
     }
 
     const result = await pool.query(
@@ -68,20 +81,18 @@ const getTienda = async (req, res, next) => {
 const updateTienda = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const nombre = req.body.nombre ? req.body.nombre.trim() : '';
-    const direccion = req.body.direccion ? req.body.direccion.trim() : null;
-    const telefono = req.body.telefono ? req.body.telefono.trim() : null;
-    const notas = req.body.notas ? req.body.notas.trim() : null;
-
     if (!id || isNaN(id)) {
-      const err = new Error('ID de tienda inválido');
-      err.status = 400;
-      return next(err);
+      return res.status(400).json({ error: 'ID de tienda inválido' });
     }
-    if (!nombre) {
-      const err = new Error('El nombre de la tienda es requerido');
-      err.status = 400;
-      return next(err);
+    const body = req.body || {};
+    let nombre, direccion, telefono, notas;
+    try {
+      nombre = str(body.nombre, 200, true);
+      direccion = str(body.direccion, 300);
+      telefono = str(body.telefono, 50);
+      notas = str(body.notas, 500);
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
     }
 
     const result = await pool.query(

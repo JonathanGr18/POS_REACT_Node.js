@@ -1,0 +1,78 @@
+/* Overlay oscuro */
+.drawer-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+  animation: drawerFadeIn 0.2s ease;
+}
+
+/* Panel lateral */
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--fondo-tarjeta);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  animation: drawerSlideIn 0.25s ease;
+}
+
+@keyframes drawerSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes drawerFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Header del drawer */
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--fondo-borde);
+}
+
+.drawer-header h2 {
+  font-size: 18px;
+  color: var(--boton-primario);
+  margin: 0;
+}
+
+.drawer-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--texto-secundario);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.drawer-close:hover {
+  background: var(--fondo-principal);
+  color: var(--texto-principal);
+}
+
+/* Body scrolleable */
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .drawer-panel {
+    width: 100vw;
+  }
+}

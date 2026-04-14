@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import Spinner from '../components/ui/Spinner';
 import { useToast } from '../components/ui/Toast';
+import { useSettings } from '../context/SettingsContext';
+import { formatCurrency, formatDate, formatTime } from '../utils/format';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -15,22 +17,27 @@ const Dashboard = () => {
   });
   const [cargando, setCargando] = useState(true);
   const { addToast } = useToast();
+  const { settings } = useSettings();
+  const umbral = settings.stockUmbral || 10;
 
   useEffect(() => {
+    let cancelado = false;
     const fetchResumen = async () => {
       try {
         setCargando(true);
-        const res = await api.get('/dashboard/resumen');
-        setDatos(res.data);
+        const res = await api.get(`/dashboard/resumen?umbral=${umbral}`);
+        if (!cancelado) setDatos(res.data);
       } catch (err) {
-        addToast('Error al cargar el dashboard', 'error');
+        if (!cancelado) addToast('Error al cargar el dashboard', 'error');
       } finally {
-        setCargando(false);
+        if (!cancelado) setCargando(false);
       }
     };
 
     fetchResumen();
-  }, [addToast]);
+    return () => { cancelado = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [umbral]);
 
   if (cargando) {
     return (
@@ -42,25 +49,10 @@ const Dashboard = () => {
 
   const formatFecha = (fechaStr) => {
     if (!fechaStr) return '-';
-    const fecha = new Date(fechaStr);
-    return fecha.toLocaleDateString('es-AR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return `${formatDate(fechaStr, { day: '2-digit', month: '2-digit', year: 'numeric' })} ${formatTime(fechaStr)}`;
   };
 
-  const formatMoneda = (valor) => {
-    const numero = parseFloat(valor);
-    if (isNaN(numero)) return '$0,00';
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 2
-    }).format(numero);
-  };
+  const formatMoneda = (valor) => formatCurrency(valor);
 
   return (
     <div className="dashboard-page">

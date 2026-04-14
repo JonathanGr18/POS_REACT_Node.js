@@ -49,6 +49,78 @@
 .falt-btn--wa  { background: #25D366; color: #fff; }
 .falt-btn--pdf { background: var(--boton-primario); color: #fff; }
 
+/* ── KPIs ── */
+.falt-kpis {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.falt-kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 18px;
+  background: var(--fondo-tarjeta);
+  border-radius: 10px;
+  border: 1.5px solid var(--fondo-borde);
+  min-width: 100px;
+  flex: 1;
+  font-family: inherit;
+  color: inherit;
+}
+button.falt-kpi {
+  cursor: pointer;
+}
+
+.falt-kpi--rojo    { border-color: rgba(231, 76, 60, 0.4); }
+.falt-kpi--naranja { border-color: rgba(243, 156, 18, 0.4); }
+.falt-kpi--amarillo { border-color: rgba(241, 196, 15, 0.4); }
+
+.falt-kpi-valor {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--texto-principal);
+}
+
+.falt-kpi--rojo .falt-kpi-valor    { color: #e74c3c; }
+.falt-kpi--naranja .falt-kpi-valor { color: #f39c12; }
+.falt-kpi--amarillo .falt-kpi-valor { color: #d4a017; }
+
+.falt-kpi-label {
+  font-size: 0.68rem;
+  color: var(--texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.falt-kpi--clickable {
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.falt-kpi--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.falt-kpi--activo {
+  border-width: 2.5px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  transform: translateY(-1px);
+}
+
+.falt-kpi--activo:not(.falt-kpi--rojo):not(.falt-kpi--naranja):not(.falt-kpi--amarillo) {
+  border-color: var(--boton-primario);
+}
+
+.falt-kpi--activo .falt-kpi-label {
+  color: var(--texto-principal);
+  font-weight: 700;
+}
+
 /* ── Recomendaciones ── */
 .falt-recomendaciones {
   background: linear-gradient(135deg, rgba(231,76,60,0.12), rgba(243,156,18,0.08));
@@ -164,7 +236,7 @@
 /* ── Grid de cards ── */
 .falt-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1rem;
 }
 
@@ -226,6 +298,17 @@
   margin: 0;
 }
 
+.falt-card-cat {
+  display: inline-block;
+  font-size: 0.65rem;
+  background: var(--boton-primario);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
 .falt-card-row {
   display: flex;
   justify-content: space-between;
@@ -257,22 +340,83 @@
   margin: 0;
 }
 
-.falt-btn-eliminar {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(231, 76, 60, 0.85);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 0.85rem;
-  padding: 4px 7px;
-  cursor: pointer;
-  transition: background 0.15s;
+.falt-sugerido {
+  font-size: 0.72rem;
+  color: #2980b9;
+  font-weight: 600;
+  margin: 0;
 }
 
-.falt-btn-eliminar:hover { background: #e74c3c; }
-.falt-btn-eliminar:disabled { opacity: 0.5; cursor: default; }
+/* ── Acciones en card ── */
+.falt-card-acciones {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid var(--fondo-borde);
+}
+
+.falt-btn-accion {
+  flex: 1;
+  padding: 7px 4px;
+  border: none;
+  background: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: var(--texto-secundario);
+}
+
+.falt-btn-accion:not(:last-child) {
+  border-right: 1px solid var(--fondo-borde);
+}
+
+.falt-btn-accion:hover {
+  background: var(--fondo-principal);
+}
+
+.falt-btn-accion--resurtir:hover { color: #27ae60; }
+.falt-btn-accion--lista:hover    { color: #2980b9; }
+.falt-btn-accion--eliminar       { color: #e74c3c; }
+.falt-btn-accion--eliminar:hover { background: rgba(231,76,60,0.1); }
+
+/* Resurtir inline */
+.falt-resurtir-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.falt-resurtir-input {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1.5px solid var(--boton-primario);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: var(--fondo-tarjeta);
+  color: var(--texto-principal);
+  text-align: center;
+  min-width: 0;
+}
+
+.falt-btn-accion--ok {
+  background: #27ae60;
+  color: white;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-weight: 800;
+}
+
+.falt-btn-accion--ok:hover { filter: brightness(1.1); }
+
+.falt-btn-accion--cancel {
+  background: #95a5a6;
+  color: white;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-weight: 800;
+}
 
 /* ── Empty ── */
 .falt-empty {
@@ -282,11 +426,12 @@
   font-size: 1rem;
 }
 
-/* ── Pagina wrapper (pages/Faltantes.js) ── */
+/* ── Pagina wrapper ── */
 .pagina-faltantes {
   background: var(--fondo-principal);
 }
 
+/* ── Responsive ── */
 @media (max-width: 480px) {
   .falt-page {
     padding: 1rem;
@@ -303,7 +448,14 @@
     text-align: center;
   }
   .falt-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 0.75rem;
+  }
+  .falt-kpis {
+    gap: 0.5rem;
+  }
+  .falt-kpi {
+    padding: 8px 10px;
+    min-width: 70px;
   }
 }

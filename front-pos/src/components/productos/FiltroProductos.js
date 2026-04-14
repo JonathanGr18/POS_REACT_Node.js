@@ -10,7 +10,10 @@ const FiltrosProducto = ({
   ascendente,
   setAscendente,
   estadoFiltro,
-  setEstadoFiltro
+  setEstadoFiltro,
+  categoriaFiltro,
+  setCategoriaFiltro,
+  categorias = []
 }) => {
   return (
     <div className="filtros-productos">
@@ -20,11 +23,30 @@ const FiltrosProducto = ({
         placeholder="Buscar por nombre o descripción..."
       />
 
-      <select className="input" value={orden} onChange={(e) => setOrden(e.target.value)}>
+      <select
+        className="input"
+        value={categoriaFiltro}
+        onChange={(e) => setCategoriaFiltro(e.target.value)}
+        aria-label="Filtrar por categoría"
+      >
+        <option value="todas">Todas las categorías</option>
+        {categorias.map(cat => (
+          <option key={cat} value={cat}>{cat}</option>
+        ))}
+      </select>
+
+      <select
+        className="input"
+        value={orden}
+        onChange={(e) => setOrden(e.target.value)}
+        aria-label="Ordenar productos por"
+      >
         <option value="codigo">Ordenar por Código</option>
         <option value="nombre">Ordenar por Nombre</option>
         <option value="precio">Ordenar por Precio</option>
         <option value="stock">Ordenar por Stock</option>
+        <option value="categoria">Ordenar por Categoría</option>
+        <option value="margen">Ordenar por Margen</option>
       </select>
 
       <Boton
@@ -34,7 +56,12 @@ const FiltrosProducto = ({
         {ascendente ? '⬆️ Ascendente' : '⬇️ Descendente'}
       </Boton>
 
-      <select className="input" value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)}>
+      <select
+        className="input"
+        value={estadoFiltro}
+        onChange={(e) => setEstadoFiltro(e.target.value)}
+        aria-label="Filtrar por estado de stock"
+      >
         <option value="todos">Todos</option>
         <option value="ok">Disponibles</option>
         <option value="bajo">Por terminar</option>

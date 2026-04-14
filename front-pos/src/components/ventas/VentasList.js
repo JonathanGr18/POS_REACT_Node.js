@@ -2,12 +2,17 @@
 import React from 'react';
 import './VentasList.css';
 
+// Escape HTML para prevenir XSS (nombres de productos pueden tener <, >, &, etc)
+const escapeHTML = (str) => String(str ?? '').replace(/[&<>"']/g, ch => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[ch]));
+
 // Función para generar el HTML del ticket con formato
 const generarHTMLTicket = (venta) => {
     return `
       <html>
         <head>
-          <title>Ticket Venta #${venta.id}</title>
+          <title>Ticket Venta #${escapeHTML(venta.id)}</title>
           <style>
             body {
               font-family: 'Courier New', monospace;
@@ -80,8 +85,8 @@ const generarHTMLTicket = (venta) => {
           </div>
 
           <div class="ticket-info">
-            Venta ID: ${venta.id}<br>
-            Fecha: ${new Date(venta.fecha).toLocaleString()}
+            Venta ID: ${escapeHTML(venta.id)}<br>
+            Fecha: ${escapeHTML(new Date(venta.fecha).toLocaleString())}
           </div>
 
           <div class="linea"></div>
@@ -99,9 +104,9 @@ const generarHTMLTicket = (venta) => {
               ${(venta.productos || [])
                 .map(p => `
                   <tr>
-                    <td>${p.cantidad}</td>
-                    <td>${p.producto}</td>
-                    <td>${p.descripcion || '-'}</td>
+                    <td>${escapeHTML(p.cantidad)}</td>
+                    <td>${escapeHTML(p.producto)}</td>
+                    <td>${escapeHTML(p.descripcion || '-')}</td>
                     <td style="text-align: right;">$${(Number(p.precio) * Number(p.cantidad)).toFixed(2)}</td>
                   </tr>
                 `)

@@ -36,6 +36,40 @@
   cursor: pointer;
 }
 
+/* ── Categorías tabs ── */
+.plv-categorias {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 0.6rem;
+  overflow-x: auto;
+  flex-shrink: 0;
+  padding-bottom: 2px;
+}
+
+.plv-cat-btn {
+  padding: 4px 12px;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.plv-cat-btn:hover {
+  border-color: var(--boton-primario);
+  color: var(--boton-primario);
+}
+
+.plv-cat-btn--activo {
+  background: var(--boton-primario);
+  border-color: var(--boton-primario);
+  color: white;
+}
+
 /* ── Grid de tarjetas ── */
 .plv-grid {
   display: grid;

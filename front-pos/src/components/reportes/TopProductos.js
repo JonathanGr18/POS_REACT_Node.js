@@ -8,12 +8,15 @@ const TopProductos = ({ desde, hasta }) => {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    let cancelado = false;
     setCargando(true);
+    setProductos([]); // Reset mientras carga
     const params = desde && hasta ? `?desde=${desde}&hasta=${hasta}` : '';
     api.get(`/reportes/top-productos${params}`)
-      .then(res => setProductos(res.data))
-      .catch(() => setProductos([]))
-      .finally(() => setCargando(false));
+      .then(res => { if (!cancelado) setProductos(res.data); })
+      .catch(() => { if (!cancelado) setProductos([]); })
+      .finally(() => { if (!cancelado) setCargando(false); });
+    return () => { cancelado = true; };
   }, [desde, hasta]);
 
   if (cargando) return <Spinner texto="Cargando top productos..." />;

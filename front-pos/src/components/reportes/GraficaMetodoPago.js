@@ -14,14 +14,17 @@ const GraficaMetodoPago = ({ desde, hasta }) => {
 
   useEffect(() => {
     if (!desde || !hasta) return;
+    let cancelado = false;
+    setDatos([]);
     api.get(`/reportes/metodos-pago?desde=${desde}&hasta=${hasta}`)
-      .then(res => setDatos(res.data))
-      .catch(() => setDatos([]));
+      .then(res => { if (!cancelado) setDatos(res.data); })
+      .catch(() => { if (!cancelado) setDatos([]); });
+    return () => { cancelado = true; };
   }, [desde, hasta]);
 
   if (datos.length === 0) return null;
 
-  const totalGeneral = datos.reduce((a, d) => a + d.total, 0);
+  const totalGeneral = datos.reduce((a, d) => a + Number(d.total), 0);
 
   return (
     <div className="gmp-card">
@@ -30,7 +33,8 @@ const GraficaMetodoPago = ({ desde, hasta }) => {
         {/* Barras */}
         <div className="gmp-barras">
           {datos.map(d => {
-            const pct = totalGeneral > 0 ? (d.total / totalGeneral) * 100 : 0;
+            const total = Number(d.total);
+            const pct = totalGeneral > 0 ? (total / totalGeneral) * 100 : 0;
             return (
               <div key={d.metodo_pago} className="gmp-fila">
                 <span className="gmp-icono">{ICONOS[d.metodo_pago] || '💰'}</span>
@@ -47,8 +51,8 @@ const GraficaMetodoPago = ({ desde, hasta }) => {
                   />
                 </div>
                 <span className="gmp-pct">{pct.toFixed(1)}%</span>
-                <span className="gmp-monto">${d.total.toLocaleString('es-MX', { minimumFractionDigits: 0 })}</span>
-                <span className="gmp-ventas">{d.num_ventas} vta{d.num_ventas !== 1 ? 's' : ''}</span>
+                <span className="gmp-monto">${total.toLocaleString('es-MX', { minimumFractionDigits: 0 })}</span>
+                <span className="gmp-ventas">{d.num_ventas} vta{Number(d.num_ventas) !== 1 ? 's' : ''}</span>
               </div>
             );
           })}
