@@ -40,8 +40,7 @@ module.exports = {
     {
       name: 'pos-frontend',
       cwd: './front-pos',
-      script: 'npx',
-      args: 'serve -s build -l 3000',
+      script: 'server.js',
       instances: 1,
       exec_mode: 'fork',
       autorestart: true,

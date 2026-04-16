@@ -33,6 +33,11 @@ const Faltantes = () => {
   const [resurtirCantidad, setResurtirCantidad] = useState('');
   const [resurtiendo, setResurtiendo] = useState(false);
   const [exportando, setExportando] = useState(false);
+  const [categoriaSel, setCategoriaSel] = useState('Todas');
+  const [marcados, setMarcados] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('falt_marcados') || '[]')); }
+    catch { return new Set(); }
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -132,18 +137,27 @@ const Faltantes = () => {
     else if (filtro === 'por_terminarse') lista = lista.filter(p => Number(p.stock) > Math.ceil(getUmbral(p) / 3));
     else if (filtro === 'mas_vendidos')   lista = [...lista].sort((a, b) => (b.vendidos_mes || 0) - (a.vendidos_mes || 0));
 
+    if (categoriaSel !== 'Todas') lista = lista.filter(p => p.categoria === categoriaSel);
+
     if (filtro !== 'mas_vendidos') lista = [...lista].sort((a, b) => Number(a.stock) - Number(b.stock));
     return lista;
-  }, [productos, busquedaDebounced, filtro]);
+  }, [productos, busquedaDebounced, filtro, categoriaSel]);
 
-  // Recomendaciones: sin stock pero muy vendidos
-  const recomendaciones = useMemo(() =>
-    productos
-      .filter(p => Number(p.stock) === 0 && (p.vendidos_mes || 0) > 0)
+  // Top vendidos del mes (todos, tengan stock o no)
+  const mejoresVendidos = useMemo(() =>
+    [...productos]
+      .filter(p => (p.vendidos_mes || 0) > 0)
       .sort((a, b) => (b.vendidos_mes || 0) - (a.vendidos_mes || 0))
-      .slice(0, 3),
+      .slice(0, 8),
     [productos]
   );
+
+  // Categorías únicas para el filtro de pills
+  const categorias = useMemo(() => {
+    const cats = new Set();
+    productos.forEach(p => { if (p.categoria) cats.add(p.categoria); });
+    return ['Todas', ...Array.from(cats).sort()];
+  }, [productos]);
 
   const confirmarEliminar = async () => {
     const id = modalEliminar.id;
@@ -158,6 +172,16 @@ const Faltantes = () => {
     } finally {
       setEliminando(null);
     }
+  };
+
+  // ── Marcar como escaso (persistido en localStorage) ──
+  const toggleMarcado = (id) => {
+    setMarcados(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      localStorage.setItem('falt_marcados', JSON.stringify([...next]));
+      return next;
+    });
   };
 
   // ── KPIs (single-pass para performance) ──
@@ -391,22 +415,29 @@ const Faltantes = () => {
         </div>
       )}
 
-      {/* ── Recomendaciones ── */}
-      {recomendaciones.length > 0 && (
+      {/* ── Mejores vendidos (sugerencias) ── */}
+      {mejoresVendidos.length > 0 && (
         <div className="falt-recomendaciones">
-          <p className="falt-rec-titulo">🔥 Pide con urgencia — sin stock pero muy vendidos:</p>
+          <p className="falt-rec-titulo">🔥 Más vendidos del mes — asegura tener stock:</p>
           <div className="falt-rec-lista">
-            {recomendaciones.map(p => (
+            {mejoresVendidos.map(p => (
               <div key={p.id} className="falt-rec-item">
-                <span className="falt-rec-nombre">{p.nombre}</span>
-                <span className="falt-rec-ventas">{p.vendidos_mes} vendidos (30 días)</span>
+                <div className="falt-rec-info">
+                  <span className="falt-rec-nombre">{p.nombre}</span>
+                  {Number(p.stock) === 0 && <span className="falt-rec-badge falt-rec-badge--rojo">❌ Sin stock</span>}
+                  {Number(p.stock) > 0 && Number(p.stock) <= 5 && <span className="falt-rec-badge falt-rec-badge--naranja">⚠️ Poco</span>}
+                </div>
+                <div className="falt-rec-actions">
+                  <span className="falt-rec-ventas">{p.vendidos_mes} vendidos</span>
+                  <button className="falt-rec-btn" onClick={() => agregarALista(p)} title="Agregar a lista de compras">📋</button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── Búsqueda ── */}
+      {/* ── Búsqueda + Filtro categoría ── */}
       <div className="falt-controles">
         <input
           className="falt-busqueda"
@@ -415,6 +446,19 @@ const Faltantes = () => {
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
         />
+        {categorias.length > 2 && (
+          <div className="falt-categorias">
+            {categorias.map(cat => (
+              <button
+                key={cat}
+                className={`falt-cat-btn${categoriaSel === cat ? ' falt-cat-btn--activo' : ''}`}
+                onClick={() => setCategoriaSel(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Cards ── */}
@@ -430,7 +474,8 @@ const Faltantes = () => {
               const est = ESTADO(p.stock, umbral);
               const sugerido = getSugerido(p);
               return (
-                <div key={p.id} className={`falt-card falt-card--${est.cls.split('--')[1]}`}>
+                <div key={p.id} className={`falt-card falt-card--${est.cls.split('--')[1]}${marcados.has(p.id) ? ' falt-card--marcado' : ''}`}>
+                  {marcados.has(p.id) && <div className="falt-card-marcado-badge">🚩 Prioritario</div>}
                   {/* Imagen o placeholder */}
                   {p.imagen_url
                     ? <img src={`${IMAGE_BASE_URL}${p.imagen_url}`} alt={p.nombre} className="falt-card-img" />
@@ -496,6 +541,11 @@ const Faltantes = () => {
                           onClick={() => agregarALista(p)}
                           title="Agregar a lista de compras"
                         >📋 Lista</button>
+                        <button
+                          className={`falt-btn-accion falt-btn-accion--marcar${marcados.has(p.id) ? ' falt-btn-accion--marcado' : ''}`}
+                          onClick={() => toggleMarcado(p.id)}
+                          title={marcados.has(p.id) ? 'Desmarcar prioritario' : 'Marcar como escaso (prioritario)'}
+                        >{marcados.has(p.id) ? '🚩' : '📌'}</button>
                         {Number(p.stock) === 0 && (
                           <button
                             className="falt-btn-accion falt-btn-accion--eliminar"

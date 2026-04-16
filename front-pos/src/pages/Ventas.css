@@ -1,6 +1,7 @@
+/* ── Página de Ventas: CSS Grid principal ── */
 .ventas-page {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   box-sizing: border-box;
@@ -9,7 +10,6 @@
 }
 
 .ventas-pos-section {
-  flex: 1;
   min-height: 0;
   overflow: hidden;
 }
@@ -46,7 +46,6 @@
   max-height: 300px;
   overflow-y: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
 }
 
 .ventas-historial-section h3 {
@@ -55,19 +54,30 @@
   color: var(--texto-principal);
 }
 
+/* ── Cuando hay historial: 3 filas ── */
+.ventas-page--con-historial {
+  grid-template-rows: auto auto auto 1fr;
+}
+
+/* ── Tablet (≤860px): scroll vertical libre ── */
 @media (max-width: 860px) {
   .ventas-page {
+    grid-template-rows: auto 1fr;
     height: auto;
     overflow: visible;
     padding: 0.75rem 1rem;
+    min-height: 100dvh;
   }
+
   .ventas-pos-section {
     overflow: visible;
   }
 }
 
-@media (max-width: 480px) {
+/* ── Móvil (≤560px) ── */
+@media (max-width: 560px) {
   .ventas-page {
     padding: 0.5rem;
+    gap: 0.5rem;
   }
 }

@@ -1,21 +1,22 @@
+/* ── ResumenCaja: CSS Grid responsive ── */
 .resumen-caja {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.6rem 0;
+  display: grid;
+  /* Desktop: 6 stats + 1 bloque métodos de pago */
+  grid-template-columns: repeat(6, 1fr) auto;
+  gap: 0.6rem;
   flex-shrink: 0;
-  overflow-x: auto;
 }
 
 .rc-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
-  padding: 6px 14px;
+  padding: 8px 10px;
   background: var(--fondo-tarjeta);
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid var(--fondo-borde);
-  min-width: 90px;
 }
 
 .rc-item--principal {
@@ -24,68 +25,97 @@
 }
 
 .rc-valor {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: var(--texto-principal);
+  white-space: nowrap;
 }
 
 .rc-label {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--texto-secundario);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   font-weight: 600;
+  text-align: center;
 }
 
 .rc-item--ganancia {
   border-color: #27ae60;
   background: color-mix(in srgb, #27ae60 8%, var(--fondo-tarjeta));
 }
-
-.rc-item--ganancia .rc-valor {
-  color: #27ae60;
-}
+.rc-item--ganancia .rc-valor { color: #27ae60; }
 
 .rc-item--perdida {
   border-color: #e74c3c;
   background: color-mix(in srgb, #e74c3c 8%, var(--fondo-tarjeta));
 }
+.rc-item--perdida .rc-valor { color: #e74c3c; }
 
-.rc-item--perdida .rc-valor {
-  color: #e74c3c;
-}
-
-/* Métodos de pago horizontal */
+/* ── Bloque de métodos de pago ── */
 .rc-item--metodos {
   flex-direction: row;
-  gap: 12px;
-  padding: 8px 14px;
+  gap: 14px;
+  padding: 8px 16px;
+  justify-content: center;
 }
 
 .rc-metodo {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 1px;
 }
 
 .rc-metodo-valor {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 800;
   color: var(--texto-principal);
 }
 
 .rc-metodo-label {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   color: var(--texto-secundario);
   font-weight: 600;
+  text-transform: uppercase;
 }
 
-@media (max-width: 480px) {
+/* ── Tablet ancho (≤1200px): 4 por fila, métodos ocupa 3 ── */
+@media (max-width: 1200px) {
   .resumen-caja {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .rc-item--metodos {
+    grid-column: span 4;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+}
+
+/* ── Tablet (≤860px): 3 por fila ── */
+@media (max-width: 860px) {
+  .resumen-caja {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .rc-item--metodos {
+    grid-column: span 3;
+  }
+}
+
+/* ── Móvil (≤560px): 2 por fila ── */
+@media (max-width: 560px) {
+  .resumen-caja {
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.4rem;
   }
+  .rc-item--metodos {
+    grid-column: span 2;
+    gap: 20px;
+  }
   .rc-item {
-    padding: 4px 8px;
-    min-width: 70px;
+    padding: 6px 8px;
+  }
+  .rc-valor {
+    font-size: 0.9rem;
   }
 }

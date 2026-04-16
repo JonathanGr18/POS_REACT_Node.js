@@ -334,7 +334,10 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
               items.map((item) => (
                 <div key={item.id} className="carrito-item">
                   <div className="carrito-item-info">
-                    <span className="carrito-item-nombre">{item.nombre}</span>
+                    <div className="carrito-item-detalle">
+                      <span className="carrito-item-nombre">{item.nombre}</span>
+                      <span className="carrito-item-precio-unit">${Number(item.precio).toFixed(2)} c/u</span>
+                    </div>
                     <span className="carrito-item-subtotal">
                       ${(Number(item.precio) * item.cantidad).toFixed(2)}
                     </span>
@@ -439,17 +442,20 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
               <span className="carrito-label">Pago</span>
               <div className="metodo-btns">
                 {[
-                  { value: 'efectivo',      label: '💵', title: 'Efectivo' },
-                  { value: 'tarjeta',       label: '💳', title: 'Tarjeta' },
-                  { value: 'transferencia', label: '🏦', title: 'Transferencia' },
+                  { value: 'efectivo',      emoji: '💵', label: 'Efectivo' },
+                  { value: 'tarjeta',       emoji: '💳', label: 'Tarjeta' },
+                  { value: 'transferencia', emoji: '🏦', label: 'Transf.' },
                 ].map(m => (
                   <button
                     key={m.value}
                     type="button"
                     className={`btn-metodo${metodoPago === m.value ? ' activo' : ''}`}
                     onClick={() => setMetodoPago(m.value)}
-                    title={m.title}
-                  >{m.label}</button>
+                    title={m.label}
+                  >
+                    <span className="metodo-emoji">{m.emoji}</span>
+                    <span className="metodo-label">{m.label}</span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -518,15 +524,16 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
                 {descuentoTipo === 'porcentaje' ? ` (−${descuento}%)` : ` (−$${descuento.toFixed(2)})`}
               </p>
             )}
-            <p className="carrito-total">
-              Total: <strong>${totalConDesc.toFixed(2)}</strong>
-            </p>
+            <div className="carrito-total-box">
+              <span className="carrito-total-label">Total</span>
+              <span className="carrito-total-monto">${totalConDesc.toFixed(2)}</span>
+            </div>
             <button
               className="btn-cobrar"
               onClick={handleSubmit}
               disabled={items.length === 0 || registrando}
             >
-              {registrando ? 'Registrando...' : '✅ COBRAR (Ctrl+Enter)'}
+              {registrando ? 'Registrando...' : '✅ COBRAR'}
             </button>
           </div>
 

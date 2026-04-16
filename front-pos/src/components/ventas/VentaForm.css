@@ -1,13 +1,13 @@
 /* ── POS Layout ── */
 .pos-layout {
   display: grid;
-  grid-template-columns: 1fr 370px;
+  grid-template-columns: 1fr 430px;
   gap: 1rem;
   height: 100%;
   min-height: 0;
 }
 
-/* ── Panel izquierdo ── */
+/* ── Panel izquierdo: catálogo de productos ── */
 .pos-productos {
   overflow-y: auto;
   min-height: 0;
@@ -17,11 +17,11 @@
 .pos-carrito {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.7rem;
   background: var(--fondo-tarjeta);
   border-radius: 14px;
-  padding: 1rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 1.1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   min-height: 0;
   overflow-y: auto;
 }
@@ -31,14 +31,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.55rem;
   border-bottom: 1px solid var(--fondo-borde);
   flex-shrink: 0;
 }
 
 .carrito-titulo {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--texto-principal);
   display: flex;
@@ -50,29 +50,29 @@
   background: var(--boton-primario);
   color: white;
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 800;
 }
 
 .carrito-header-btns {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   align-items: center;
 }
 
 .btn-limpiar-carrito,
 .btn-pausar {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border: 1.5px solid var(--fondo-borde);
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -83,11 +83,13 @@
 .btn-limpiar-carrito:hover:not(:disabled) {
   background: var(--boton-peligro);
   border-color: var(--boton-peligro);
+  color: white;
 }
 
 .btn-pausar:hover:not(:disabled) {
   background: #f39c12;
   border-color: #f39c12;
+  color: white;
 }
 
 .btn-limpiar-carrito:disabled,
@@ -102,12 +104,12 @@
 }
 
 .btn-pausadas {
-  padding: 4px 10px;
+  padding: 5px 11px;
   border: 1.5px solid #f39c12;
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
   color: #f39c12;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
@@ -128,7 +130,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
   z-index: 50;
-  min-width: 180px;
+  min-width: 190px;
   padding: 4px 0;
 }
 
@@ -139,11 +141,11 @@
 .pausadas-menu button {
   display: block;
   width: 100%;
-  padding: 8px 12px;
+  padding: 9px 14px;
   border: none;
   background: none;
   text-align: left;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   color: var(--texto-principal);
   cursor: pointer;
 }
@@ -155,12 +157,12 @@
 /* ── Items del carrito ── */
 .carrito-items {
   overflow-y: auto;
-  max-height: 210px;
+  max-height: 240px;
   flex-shrink: 0;
 }
 
 .carrito-vacio {
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   color: var(--texto-secundario);
   text-align: center;
   padding: 1.5rem 0;
@@ -170,51 +172,69 @@
 .carrito-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 6px 0;
+  gap: 5px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--fondo-borde);
 }
 
 .carrito-item-info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.carrito-item-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
 }
 
 .carrito-item-nombre {
-  font-size: 0.84rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--texto-principal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.carrito-item-precio-unit {
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
 }
 
 .carrito-item-subtotal {
-  font-size: 0.84rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--boton-primario);
   white-space: nowrap;
-  margin-left: 6px;
+  flex-shrink: 0;
 }
 
 .carrito-item-controls {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .qty-btn {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border: 1.5px solid var(--fondo-borde);
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
   color: var(--texto-principal);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s;
+  flex-shrink: 0;
 }
 
 .qty-btn:hover:not(:disabled) {
@@ -241,9 +261,9 @@
 }
 
 .qty-num {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
-  min-width: 20px;
+  min-width: 26px;
   text-align: center;
 }
 
@@ -260,46 +280,47 @@
 }
 
 .qty-input {
-  width: 44px;
-  padding: 2px 4px;
+  width: 48px;
+  padding: 3px 4px;
   text-align: center;
   border: 1.5px solid var(--boton-primario);
   border-radius: 4px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   background: var(--fondo-tarjeta);
   color: var(--texto-principal);
 }
 
-/* ── Descuento + Método ── */
+/* ── Descuento + Método (CSS Grid) ── */
 .carrito-opciones {
-  display: flex;
-  gap: 0.6rem;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem 0.65rem;
+  align-items: start;
   flex-shrink: 0;
 }
 
-.carrito-descuento { flex: 1; }
-.carrito-metodo    { flex-shrink: 0; }
+.carrito-descuento { min-width: 0; }
+.carrito-metodo    { }
 
 .desc-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .desc-tipo-toggle {
   display: flex;
-  gap: 2px;
+  gap: 3px;
 }
 
 .desc-tipo-btn {
-  padding: 2px 8px;
+  padding: 3px 9px;
   border: 1px solid var(--fondo-borde);
   background: transparent;
   color: var(--texto-secundario);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   border-radius: 4px;
@@ -314,33 +335,33 @@
 
 .desc-monto-input {
   width: 100%;
-  padding: 5px 8px;
+  padding: 6px 8px;
   border: 1.5px solid var(--fondo-borde);
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   background: var(--fondo-principal);
   color: var(--texto-principal);
 }
 
 .carrito-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--texto-secundario);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .desc-btns {
   display: flex;
-  gap: 3px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .btn-desc {
-  padding: 4px 7px;
-  font-size: 0.75rem;
+  padding: 5px 8px;
+  font-size: 0.82rem;
   font-weight: 600;
   border: 1.5px solid var(--fondo-borde);
   border-radius: 6px;
@@ -356,23 +377,37 @@
   color: white;
 }
 
+/* ── Método de pago (botones con emoji + texto) ── */
 .metodo-btns {
   display: flex;
-  gap: 4px;
+  gap: 5px;
 }
 
 .btn-metodo {
-  width: 36px;
-  height: 36px;
-  border: 1.5px solid var(--fondo-borde);
-  border-radius: 8px;
-  background: transparent;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all 0.15s;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+  padding: 6px 10px;
+  min-width: 58px;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-metodo .metodo-emoji {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.btn-metodo .metodo-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--texto-secundario);
+  letter-spacing: 0.02em;
 }
 
 .btn-metodo.activo {
@@ -380,11 +415,15 @@
   border-color: var(--boton-primario);
 }
 
+.btn-metodo.activo .metodo-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 /* ── Monto recibido ── */
 .carrito-recibido {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -395,16 +434,16 @@
 
 .recibido-input {
   flex: 1;
-  padding: 7px 10px;
+  padding: 9px 12px;
   border: 1.5px solid var(--fondo-borde);
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   background: var(--fondo-principal);
   color: var(--texto-principal);
 }
 
 .btn-limpiar {
-  padding: 0 10px;
+  padding: 0 12px;
   border: 1.5px solid var(--fondo-borde);
   border-radius: 8px;
   background: transparent;
@@ -429,12 +468,12 @@
 }
 
 .btn-exacto {
-  padding: 5px 10px;
+  padding: 6px 11px;
   border: 2px solid var(--boton-primario);
   border-radius: 7px;
   background: var(--boton-primario);
   color: white;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.15s;
@@ -452,12 +491,12 @@
 }
 
 .btn-billete {
-  padding: 5px 8px;
+  padding: 5px 9px;
   border: 2px solid #4caf50;
   border-radius: 7px;
   background: transparent;
   color: #4caf50;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
@@ -469,13 +508,13 @@
 }
 
 .btn-moneda {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: 2px solid var(--boton-secundario);
   border-radius: 50%;
   background: transparent;
   color: var(--boton-secundario);
-  font-size: 0.7rem;
+  font-size: 0.73rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
@@ -490,87 +529,223 @@
 }
 
 .cambio-ok {
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   color: var(--boton-exito);
   margin: 0;
+  font-weight: 600;
 }
 
 .cambio-falta {
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   color: var(--boton-peligro);
   margin: 0;
+  font-weight: 600;
 }
 
-/* ── Footer: total + cobrar ── */
+/* ── Footer: total + cobrar en grid ── */
 .carrito-footer {
   border-top: 2px solid var(--fondo-borde);
-  padding-top: 0.65rem;
+  padding-top: 0.6rem;
   flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "subtotal subtotal"
+    "total    cobrar";
+  gap: 0.45rem;
+  align-items: stretch;
 }
 
 .carrito-subtotal {
+  grid-area: subtotal;
   font-size: 0.82rem;
   color: var(--texto-secundario);
   text-decoration: line-through;
-  margin: 0 0 2px;
+  margin: 0;
 }
 
-.carrito-total {
-  font-size: 1.1rem;
-  color: var(--texto-principal);
-  margin: 0 0 0.6rem;
+/* Total compacto */
+.carrito-total-box {
+  grid-area: total;
+  background: linear-gradient(135deg, var(--boton-exito) 0%, #16a085 100%);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
+.carrito-total-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.carrito-total-monto {
+  color: white;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+/* Botón COBRAR compacto y alto */
 .btn-cobrar {
-  width: 100%;
-  padding: 12px;
+  grid-area: cobrar;
+  width: auto;
+  padding: 0 18px;
   background: var(--boton-exito);
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.15s;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .btn-cobrar:hover:not(:disabled) {
   filter: brightness(1.1);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 188, 156, 0.4);
 }
 
 .btn-cobrar:disabled {
   opacity: 0.4;
   cursor: default;
-  transform: none;
 }
 
 /* ── Atajos info ── */
 .atajos-info {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  padding-top: 6px;
+  gap: 10px;
+  padding-top: 4px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .atajos-info span {
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   color: var(--texto-secundario);
   background: var(--fondo-principal);
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   font-family: monospace;
 }
 
-/* ── Responsive ── */
+/* ── Responsive con CSS Grid ── */
+
+/* Pantalla grande pero no xl */
+@media (max-width: 1300px) {
+  .pos-layout {
+    grid-template-columns: 1fr 400px;
+  }
+}
+
+/* Pantalla mediana */
+@media (max-width: 1100px) {
+  .pos-layout {
+    grid-template-columns: 1fr 360px;
+  }
+}
+
+/* Tablet: carrito debajo como panel completo */
 @media (max-width: 860px) {
   .pos-layout {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
     height: auto;
   }
+
+  /* El carrito va PRIMERO */
+  .pos-carrito {
+    order: -1;
+    max-height: none;
+  }
+
   .carrito-items {
     max-height: 180px;
+  }
+
+  .carrito-total-monto {
+    font-size: 1.5rem;
+  }
+
+  .metodo-btns {
+    gap: 6px;
+  }
+
+  .btn-metodo {
+    flex: 1;
+  }
+}
+
+/* Móvil: compactar todo */
+@media (max-width: 560px) {
+  .pos-layout {
+    gap: 0.6rem;
+  }
+
+  .pos-carrito {
+    padding: 0.85rem;
+    gap: 0.55rem;
+  }
+
+  /* Billetero en 2 filas limpias */
+  .billetero {
+    display: grid;
+    grid-template-columns: auto repeat(3, 1fr) repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  .btn-exacto {
+    grid-column: 1;
+  }
+
+  .btn-billete {
+    padding: 6px 4px;
+    font-size: 0.8rem;
+  }
+
+  .btn-moneda {
+    width: 36px;
+    height: 36px;
+    font-size: 0.68rem;
+  }
+
+  .carrito-total-monto {
+    font-size: 1.35rem;
+  }
+
+  .btn-cobrar {
+    font-size: 1.1rem;
+    padding: 13px;
+  }
+
+  .carrito-item-nombre {
+    font-size: 0.92rem;
+  }
+}
+
+/* Muy pequeño (360px) */
+@media (max-width: 400px) {
+  .metodo-btns {
+    gap: 4px;
+  }
+  .btn-metodo {
+    padding: 5px 6px;
+    min-width: 0;
+  }
+  .btn-metodo .metodo-label {
+    font-size: 0.6rem;
   }
 }
