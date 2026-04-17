@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useSettings } from '../../context/SettingsContext';
+import { useToast } from '../ui/Toast';
+import EditarVentaModal from '../ventas/EditarVentaModal';
 import './TicketPreviewModal.css';
 
-const TicketPreviewModal = ({ venta, onCerrar }) => {
+const TicketPreviewModal = ({ venta, onCerrar, onVentaModificada }) => {
   const { settings } = useSettings();
+  const { addToast } = useToast();
+  const [editarVisible, setEditarVisible] = useState(false);
 
   // Cerrar con Enter o Escape
   React.useEffect(() => {
@@ -62,7 +66,35 @@ const TicketPreviewModal = ({ venta, onCerrar }) => {
   };
 
   const handleImprimir = () => {
-    window.print();
+    // Abrir ventana limpia con solo el ticket (evita imprimir toda la app)
+    const ticketEl = document.getElementById('ticket-print-area');
+    if (!ticketEl) return;
+
+    const ventana = window.open('', '_blank', 'width=400,height=600');
+    if (!ventana) {
+      addToast('El navegador bloqueó la ventana. Permite pop-ups para imprimir.', 'aviso');
+      return;
+    }
+
+    ventana.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Ticket ${folio}</title>
+        <style>
+          body { margin: 0; padding: 10px; font-family: 'Courier New', monospace; }
+          @page { margin: 5mm; size: auto; }
+        </style>
+      </head>
+      <body>${ticketEl.innerHTML}</body>
+      </html>
+    `);
+    ventana.document.close();
+    ventana.focus();
+    setTimeout(() => {
+      ventana.print();
+      ventana.close();
+    }, 300);
   };
 
   const handlePDF = () => {
@@ -211,8 +243,23 @@ const TicketPreviewModal = ({ venta, onCerrar }) => {
           <button className="btn btn-secondary" onClick={handlePDF}>📄 PDF</button>
           <button className="tpm-btn-wa" onClick={handleWhatsApp}>💬 WhatsApp</button>
           <button className="tpm-btn-email" onClick={handleEmail}>✉️ Email</button>
+          {venta.id && (
+            <button className="tpm-btn-editar" onClick={() => setEditarVisible(true)}>✏️ Modificar</button>
+          )}
           <button className="btn" onClick={onCerrar}>Cerrar</button>
         </div>
+
+        {editarVisible && (
+          <EditarVentaModal
+            venta={venta}
+            onCerrar={() => setEditarVisible(false)}
+            onActualizado={() => {
+              setEditarVisible(false);
+              onVentaModificada?.();
+              onCerrar();
+            }}
+          />
+        )}
 
       </div>
     </div>

@@ -26,6 +26,7 @@
   border-color: var(--boton-primario);
 }
 
+.plv-buscar-por,
 .plv-orden {
   padding: 8px 10px;
   font-size: 0.85rem;
@@ -34,6 +35,137 @@
   background: var(--fondo-tarjeta);
   color: var(--texto-principal);
   cursor: pointer;
+}
+
+.plv-buscar-por {
+  min-width: 90px;
+}
+
+/* ── Toggle vista grid/lista ── */
+.plv-vista-toggle {
+  padding: 6px 10px;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 8px;
+  background: var(--fondo-tarjeta);
+  color: var(--texto-secundario);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.plv-vista-toggle:hover {
+  border-color: var(--boton-primario);
+  color: var(--boton-primario);
+}
+
+/* ── Vista TABLA ── */
+.plv-tabla-wrap {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.plv-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.plv-tabla th {
+  position: sticky;
+  top: 0;
+  background: var(--fondo-tarjeta);
+  padding: 5px 6px;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--texto-secundario);
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--fondo-borde);
+  z-index: 1;
+}
+
+.plv-tabla td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--fondo-borde);
+  vertical-align: middle;
+}
+
+.plv-fila {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.plv-fila:hover { background: var(--fondo-principal); }
+.plv-fila--activo { background: color-mix(in srgb, var(--boton-primario) 10%, var(--fondo-tarjeta)); }
+.plv-fila--agotado { opacity: 0.4; cursor: not-allowed; }
+
+.plv-td-id {
+  font-size: 0.72rem;
+  color: var(--texto-secundario);
+  white-space: nowrap;
+}
+
+.plv-td-img {
+  width: 36px;
+  position: relative;
+}
+
+.plv-mini-img {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.plv-mini-placeholder {
+  font-size: 1.2rem;
+}
+
+.plv-fila-badge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  background: var(--boton-primario);
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+
+.plv-td-nombre {
+  font-weight: 600;
+  color: var(--texto-principal);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plv-td-desc {
+  color: var(--texto-secundario);
+  font-size: 0.72rem;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plv-td-stock {
+  font-weight: 700;
+  text-align: center;
+}
+
+.plv-td-precio {
+  font-weight: 800;
+  color: var(--boton-primario);
+  white-space: nowrap;
 }
 
 /* ── Categorías tabs ── */
@@ -59,9 +191,11 @@
   transition: all 0.15s;
 }
 
-.plv-cat-btn:hover {
-  border-color: var(--boton-primario);
-  color: var(--boton-primario);
+@media (hover: hover) {
+  .plv-cat-btn:hover {
+    border-color: var(--boton-primario);
+    color: var(--boton-primario);
+  }
 }
 
 .plv-cat-btn--activo {
@@ -117,10 +251,12 @@
   user-select: none;
 }
 
-.plv-card:hover:not(.plv-card--agotado) {
-  border-color: var(--boton-primario);
-  box-shadow: 0 4px 12px rgba(153, 103, 206, 0.25);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .plv-card:hover:not(.plv-card--agotado) {
+    border-color: var(--boton-primario);
+    box-shadow: 0 4px 12px rgba(153, 103, 206, 0.25);
+    transform: translateY(-2px);
+  }
 }
 
 .plv-card--agotado {
@@ -129,10 +265,9 @@
   filter: grayscale(40%);
 }
 
+/* Selección visual sutil (solo borde, sin fondo ni sombra) */
 .plv-card--activo {
   border-color: var(--boton-primario);
-  background: color-mix(in srgb, var(--boton-primario) 10%, var(--fondo-tarjeta));
-  box-shadow: 0 0 0 2px var(--boton-primario);
 }
 
 /* Badge de cantidad en carrito */
@@ -165,6 +300,23 @@
   font-weight: 800;
   color: var(--boton-primario);
   margin: 0 0 4px;
+}
+
+.plv-desc {
+  font-size: 0.65rem;
+  color: var(--texto-secundario);
+  margin: 0;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plv-codigo {
+  font-size: 0.62rem;
+  color: var(--texto-secundario);
+  margin: 0;
+  opacity: 0.7;
 }
 
 .plv-stock {

@@ -1,10 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import './GraficaPeriodo.css';
 
 const GraficaPeriodo = ({ dias = [] }) => {
+  const [hoverIdx, setHoverIdx] = useState(null);
+  const svgRef = useRef(null);
+
   const datos = useMemo(() => {
     return [...(dias || [])]
-      .map(d => ({ fecha: d.dia.slice(0, 10), total: parseFloat(d.total_dia) || 0 }))
+      .map(d => ({
+        fecha: d.dia.slice(0, 10),
+        total: parseFloat(d.total_dia) || 0,
+        ventas: Number(d.num_ventas) || 0,
+      }))
       .sort((a, b) => a.fecha.localeCompare(b.fecha));
   }, [dias]);
 
@@ -60,6 +67,25 @@ const GraficaPeriodo = ({ dias = [] }) => {
   // Punto máximo
   const maxIdx = datos.reduce((mi, d, i) => d.total > datos[mi].total ? i : mi, 0);
 
+  // Manejador de hover sobre el SVG: calcula el índice más cercano a la X del mouse
+  const handleMouseMove = (e) => {
+    if (!svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const xVb = ((e.clientX - rect.left) / rect.width) * W;
+    if (xVb < padL || xVb > W - padR) { setHoverIdx(null); return; }
+    const rel = (xVb - padL) / gW;
+    const idx = Math.round(rel * (n - 1));
+    setHoverIdx(Math.max(0, Math.min(n - 1, idx)));
+  };
+
+  const handleMouseLeave = () => setHoverIdx(null);
+
+  const puntoActivo = hoverIdx != null ? datos[hoverIdx] : null;
+  const fechaFmtLargo = (iso) => {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+  };
+
   return (
     <div className="grafica-periodo-card">
       <div className="grafica-periodo-top">
@@ -77,7 +103,13 @@ const GraficaPeriodo = ({ dias = [] }) => {
       </div>
 
       <div className="grafica-periodo-scroll">
-        <svg viewBox={`0 0 ${W} ${H}`} className="grafica-periodo-svg">
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H}`}
+          className="grafica-periodo-svg"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
           <defs>
             <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--boton-primario)" stopOpacity="0.25" />
@@ -200,7 +232,56 @@ const GraficaPeriodo = ({ dias = [] }) => {
               {fmtFecha(fecha)}
             </text>
           ))}
+
+          {/* Línea vertical al pasar el mouse */}
+          {hoverIdx != null && (
+            <g pointerEvents="none">
+              <line
+                x1={xOf(hoverIdx)} y1={padT}
+                x2={xOf(hoverIdx)} y2={padT + gH}
+                stroke="var(--boton-primario)"
+                strokeWidth="1.2"
+                strokeDasharray="3,3"
+                opacity="0.7"
+              />
+              <circle
+                cx={xOf(hoverIdx)}
+                cy={yOf(datos[hoverIdx].total)}
+                r={5}
+                fill="var(--boton-primario)"
+                stroke="var(--fondo-tarjeta)"
+                strokeWidth="2"
+              />
+            </g>
+          )}
         </svg>
+
+        {/* Tooltip HTML flotante */}
+        {puntoActivo && svgRef.current && (() => {
+          const rect = svgRef.current.getBoundingClientRect();
+          const xPct = (xOf(hoverIdx) / W) * 100;
+          return (
+            <div
+              className="gp-tooltip"
+              style={{ left: `${xPct}%` }}
+              role="tooltip"
+            >
+              <div className="gp-tt-titulo">{fechaFmtLargo(puntoActivo.fecha)}</div>
+              <div className="gp-tt-fila">
+                <span>Total del día</span>
+                <strong>${puntoActivo.total.toFixed(2)}</strong>
+              </div>
+              <div className="gp-tt-fila">
+                <span>Num. ventas</span>
+                <strong>{puntoActivo.ventas}</strong>
+              </div>
+              <div className="gp-tt-fila">
+                <span>Ticket prom.</span>
+                <strong>${puntoActivo.ventas > 0 ? (puntoActivo.total / puntoActivo.ventas).toFixed(2) : '0.00'}</strong>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

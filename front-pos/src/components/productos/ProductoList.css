@@ -154,6 +154,15 @@
   font-weight: 500;
 }
 
+.td-desc {
+  font-size: 0.82rem;
+  color: var(--texto-secundario);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Resurtir inline */
 .resurtir-inline {
   display: inline-flex;

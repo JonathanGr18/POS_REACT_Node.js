@@ -29,6 +29,12 @@
   align-items: center;
   gap: 4px;
   position: relative;
+  cursor: pointer;
+}
+
+.gds-col--activo .gds-label {
+  color: var(--boton-primario);
+  font-weight: 700;
 }
 
 .gds-barra-wrap {
@@ -51,8 +57,69 @@
   opacity: 1;
 }
 
-.gds-barra:hover {
+.gds-barra:hover,
+.gds-barra--activo {
   opacity: 1;
+  filter: brightness(1.08);
+}
+
+/* Tooltip flotante al pasar el mouse */
+.gds-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-width: 170px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  z-index: 20;
+  font-size: 0.72rem;
+  color: var(--texto-principal);
+  pointer-events: none;
+  animation: gdsFadeIn 0.12s ease-out;
+}
+
+.gds-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--fondo-borde);
+}
+
+@keyframes gdsFadeIn {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.gds-tt-titulo {
+  font-weight: 800;
+  color: var(--boton-primario);
+  margin-bottom: 5px;
+  font-size: 0.78rem;
+  border-bottom: 1px solid var(--fondo-borde);
+  padding-bottom: 4px;
+}
+
+.gds-tt-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.gds-tt-fila span {
+  color: var(--texto-secundario);
+}
+
+.gds-tt-fila strong {
+  color: var(--texto-principal);
+  font-weight: 700;
 }
 
 .gds-valor {

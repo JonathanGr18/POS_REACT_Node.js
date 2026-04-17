@@ -141,12 +141,16 @@
   cursor: not-allowed;
 }
 
-/* ── Charts row: día semana + hora pico ── */
+/* ── Charts row: día semana + método pago + hora pico ── */
 .reportes-charts-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1.25rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1050px) {
+  .reportes-charts-row { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 700px) {

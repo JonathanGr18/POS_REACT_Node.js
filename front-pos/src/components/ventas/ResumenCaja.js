@@ -98,26 +98,17 @@ const ResumenCaja = ({ refreshKey = 0, productosCache = null }) => {
         <span className="rc-valor">${datos.totalMonto.toFixed(2)}</span>
         <span className="rc-label">Total del día</span>
       </div>
-      <div className="rc-item">
+      <div className="rc-item rc-hide-mobile">
         <span className="rc-valor">${datos.promedio.toFixed(2)}</span>
         <span className="rc-label">Promedio</span>
       </div>
-      <div className="rc-item">
+      <div className="rc-item rc-hide-mobile">
         <span className="rc-valor">{datos.articulos}</span>
         <span className="rc-label">Artículos vendidos</span>
       </div>
       <div className={`rc-item ${datos.ganancia >= 0 ? 'rc-item--ganancia' : 'rc-item--perdida'}`}>
         <span className="rc-valor">${datos.ganancia.toFixed(2)}</span>
         <span className="rc-label">Ganancia estimada</span>
-      </div>
-      <div className="rc-item">
-        <span className="rc-valor">{datos.ultimaVenta || '—'}</span>
-        <span className="rc-label">Última venta</span>
-      </div>
-      <div className="rc-item rc-item--metodos">
-        <div className="rc-metodo"><span>💵</span><span className="rc-metodo-valor">${datos.efectivo.toFixed(0)}</span><span className="rc-metodo-label">Efectivo</span></div>
-        <div className="rc-metodo"><span>💳</span><span className="rc-metodo-valor">${datos.tarjeta.toFixed(0)}</span><span className="rc-metodo-label">Tarjeta</span></div>
-        <div className="rc-metodo"><span>🏦</span><span className="rc-metodo-valor">${datos.transferencia.toFixed(0)}</span><span className="rc-metodo-label">Transfer.</span></div>
       </div>
     </div>
   );

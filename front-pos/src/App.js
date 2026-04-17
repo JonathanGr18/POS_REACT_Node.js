@@ -9,7 +9,6 @@ import { SettingsProvider } from './context/SettingsContext';
 import { RemindersProvider } from './context/RemindersContext';
 import RecordatoriosDrawer from './components/recordatorios/RecordatoriosDrawer';
 import RecordatoriosBanner from './components/recordatorios/RecordatoriosBanner';
-import AsistenteIA from './components/ia/AsistenteIA';
 import { useReminders } from './context/RemindersContext';
 import useDarkMode from './hooks/useDarkMode';
 
@@ -36,24 +35,25 @@ const AppInner = () => {
   return (
     <Router>
       <Navbar />
-      <RecordatoriosBanner />
-      {drawerAbierto && <RecordatoriosDrawer />}
-      <ErrorBoundary>
-        <Suspense fallback={<Spinner texto="Cargando..." />}>
-          <Routes>
-            <Route path="/"              element={<Dashboard />} />
-            <Route path="/productos"     element={<Productos />} />
-            <Route path="/ventas"        element={<Ventas />} />
-            <Route path="/faltantes"     element={<Faltantes />} />
-            <Route path="/reportes"      element={<Reportes />} />
-            <Route path="/tiendas"       element={<Tiendas />} />
-            <Route path="/lista-compras" element={<ListaCompras />} />
-            <Route path="/settings"      element={<Settings />} />
-            <Route path="*"              element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </ErrorBoundary>
-      <AsistenteIA />
+      <div className="app-main">
+        <RecordatoriosBanner />
+        {drawerAbierto && <RecordatoriosDrawer />}
+        <ErrorBoundary>
+          <Suspense fallback={<Spinner texto="Cargando..." />}>
+            <Routes>
+              <Route path="/"              element={<Dashboard />} />
+              <Route path="/productos"     element={<Productos />} />
+              <Route path="/ventas"        element={<Ventas />} />
+              <Route path="/faltantes"     element={<Faltantes />} />
+              <Route path="/reportes"      element={<Reportes />} />
+              <Route path="/tiendas"       element={<Tiendas />} />
+              <Route path="/lista-compras" element={<ListaCompras />} />
+              <Route path="/settings"      element={<Settings />} />
+              <Route path="*"              element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
+      </div>
     </Router>
   );
 };

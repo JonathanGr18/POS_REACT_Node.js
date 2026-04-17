@@ -20,8 +20,42 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
 
   // Ordenes pausadas
   const [ordenesPausadas, setOrdenesPausadas] = useState([]);
+  const [mostrarPausadas, setMostrarPausadas] = useState(false);
+  const pausadasRef = useRef(null);
   // Ref sincrono para evitar doble cobro en eventos rapidos (ctrl+enter)
   const procesandoRef = useRef(false);
+
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    if (!mostrarPausadas) return;
+    const onClickFuera = (e) => {
+      if (pausadasRef.current && !pausadasRef.current.contains(e.target)) {
+        setMostrarPausadas(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickFuera);
+    return () => document.removeEventListener('mousedown', onClickFuera);
+  }, [mostrarPausadas]);
+
+  // Cantidades reservadas por órdenes pausadas (id → cantidad total)
+  const reservadoPausadas = useMemo(() => {
+    const map = {};
+    ordenesPausadas.forEach(o => {
+      o.items.forEach(it => {
+        map[it.id] = (map[it.id] || 0) + Number(it.cantidad);
+      });
+    });
+    return map;
+  }, [ordenesPausadas]);
+
+  // Productos con stock ajustado (descontando lo reservado por órdenes pausadas)
+  const productosAjustados = useMemo(() => {
+    if (Object.keys(reservadoPausadas).length === 0) return productosDisponibles;
+    return productosDisponibles.map(p => ({
+      ...p,
+      stock: Math.max(0, Number(p.stock) - (reservadoPausadas[p.id] || 0)),
+    }));
+  }, [productosDisponibles, reservadoPausadas]);
 
   // Memoizados para evitar recalculos en cada render
   const totalItems = useMemo(() => items.reduce((acc, i) => acc + i.cantidad, 0), [items]);
@@ -43,25 +77,38 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
     }
   }, [subtotal, descuentoTipo, descuento]);
 
+  // Stock máximo real para un producto id (descontando reservas de pausadas)
+  const stockMaximo = useCallback((id) => {
+    const prod = productosDisponibles.find(p => p.id === id);
+    if (!prod) return 0;
+    return Math.max(0, Number(prod.stock) - (reservadoPausadas[id] || 0));
+  }, [productosDisponibles, reservadoPausadas]);
+
   const agregarProducto = (producto) => {
+    const stockMax = stockMaximo(producto.id);
     const yaExiste = items.find((i) => i.id === producto.id);
     if (yaExiste) {
-      if (yaExiste.cantidad < producto.stock) {
+      if (yaExiste.cantidad < stockMax) {
         setItems(items.map((i) =>
           i.id === producto.id ? { ...i, cantidad: i.cantidad + 1 } : i
         ));
       } else {
-        addToast('No puedes agregar más de la cantidad disponible en stock.', 'aviso');
+        addToast('No puedes agregar más: stock reservado en órdenes pausadas.', 'aviso');
       }
     } else {
+      if (stockMax <= 0) {
+        addToast('Sin stock disponible (reservado en órdenes pausadas).', 'aviso');
+        return;
+      }
       setItems([...items, { ...producto, cantidad: 1 }]);
     }
   };
 
   const actualizarCantidad = (id, delta) => {
+    const stockMax = stockMaximo(id);
     setItems(items.map((item) => {
       if (item.id !== id) return item;
-      const nueva = Math.max(1, Math.min(item.stock, item.cantidad + delta));
+      const nueva = Math.max(1, Math.min(stockMax, item.cantidad + delta));
       return { ...item, cantidad: nueva };
     }));
   };
@@ -69,9 +116,10 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
   const setCantidadDirecta = (id, cantidad) => {
     const num = parseInt(cantidad);
     if (isNaN(num) || num < 1) return;
+    const stockMax = stockMaximo(id);
     setItems(items.map(item => {
       if (item.id !== id) return item;
-      return { ...item, cantidad: Math.min(num, item.stock) };
+      return { ...item, cantidad: Math.min(num, stockMax) };
     }));
   };
 
@@ -139,6 +187,7 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
     setDescuentoTipo(orden.descuentoTipo);
     setMetodoPago(orden.metodoPago);
     setMontoRecibido('');
+    setMostrarPausadas(false);
     addToast('Orden recuperada', 'exito');
   };
 
@@ -221,8 +270,8 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
       document.getElementById('plv-busqueda-input')?.focus();
       return;
     }
-    // F4 = monto exacto
-    if (e.key === 'F4') {
+    // Ctrl+ArrowUp = monto exacto
+    if (e.ctrlKey && e.key === 'ArrowUp') {
       e.preventDefault();
       if (totalConDesc > 0) setMontoRecibido(String(totalConDesc));
       return;
@@ -282,7 +331,7 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
         {/* ── Panel izquierdo: catálogo de productos ── */}
         <div className="pos-productos">
           <ProductoListVenta
-            productos={productosDisponibles}
+            productos={productosAjustados}
             categorias={categorias}
             onSelect={agregarProducto}
             itemsEnCarrito={items}
@@ -298,16 +347,48 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
             </h3>
             <div className="carrito-header-btns">
               {ordenesPausadas.length > 0 && (
-                <div className="pausadas-dropdown">
-                  <button className="btn-pausadas" title="Órdenes pausadas">
+                <div
+                  className={`pausadas-dropdown${mostrarPausadas ? ' pausadas-dropdown--abierto' : ''}`}
+                  ref={pausadasRef}
+                >
+                  <button
+                    className="btn-pausadas"
+                    title="Órdenes pausadas"
+                    onClick={() => setMostrarPausadas(v => !v)}
+                    type="button"
+                  >
                     ⏸ {ordenesPausadas.length}
                   </button>
                   <div className="pausadas-menu">
-                    {ordenesPausadas.map((o, i) => (
-                      <button key={i} onClick={() => recuperarOrden(i)}>
-                        Orden #{i + 1} — {o.items.length} item(s)
-                      </button>
-                    ))}
+                    {ordenesPausadas.map((o, i) => {
+                      const totalOrden = o.items.reduce(
+                        (acc, it) => acc + Number(it.precio) * Number(it.cantidad), 0
+                      );
+                      return (
+                        <button
+                          key={i}
+                          className="pausada-item"
+                          onClick={() => recuperarOrden(i)}
+                          title="Recuperar orden"
+                        >
+                          <div className="pausada-item-header">
+                            <span className="pausada-item-titulo">Orden #{i + 1}</span>
+                            <span className="pausada-item-total">${totalOrden.toFixed(2)}</span>
+                          </div>
+                          <ul className="pausada-item-productos">
+                            {o.items.slice(0, 4).map((it, idx) => (
+                              <li key={idx}>
+                                <span className="pausada-prod-nombre">{it.nombre}</span>
+                                <span className="pausada-prod-cant">×{it.cantidad}</span>
+                              </li>
+                            ))}
+                            {o.items.length > 4 && (
+                              <li className="pausada-mas">+{o.items.length - 4} más…</li>
+                            )}
+                          </ul>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -333,16 +414,14 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
             ) : (
               items.map((item) => (
                 <div key={item.id} className="carrito-item">
-                  <div className="carrito-item-info">
-                    <div className="carrito-item-detalle">
+                  <div className="carrito-item-row">
+                    <div className="carrito-item-info">
                       <span className="carrito-item-nombre">{item.nombre}</span>
-                      <span className="carrito-item-precio-unit">${Number(item.precio).toFixed(2)} c/u</span>
+                      {item.descripcion && item.descripcion !== 'Sin descripcion' && (
+                        <span className="carrito-item-desc">{item.descripcion}</span>
+                      )}
                     </div>
-                    <span className="carrito-item-subtotal">
-                      ${(Number(item.precio) * item.cantidad).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="carrito-item-controls">
+                    <div className="carrito-item-controls">
                     <button
                       className="qty-btn"
                       onClick={() => actualizarCantidad(item.id, -1)}
@@ -391,79 +470,53 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
                       className="qty-btn qty-btn--eliminar"
                       onClick={() => eliminarItem(item.id)}
                     >✕</button>
+                    </div>
+                    <span className="carrito-item-subtotal">
+                      ${(Number(item.precio) * item.cantidad).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          {/* Descuento + Método de pago */}
+          {/* ── Descuento % + Método pago (misma fila) ── */}
           <div className="carrito-opciones">
-            <div className="carrito-descuento">
-              <div className="desc-header">
-                <span className="carrito-label">Descuento</span>
-                <div className="desc-tipo-toggle">
-                  <button
-                    type="button"
-                    className={`desc-tipo-btn${descuentoTipo === 'porcentaje' ? ' activo' : ''}`}
-                    onClick={() => { setDescuentoTipo('porcentaje'); setDescuento(0); }}
-                  >%</button>
-                  <button
-                    type="button"
-                    className={`desc-tipo-btn${descuentoTipo === 'monto' ? ' activo' : ''}`}
-                    onClick={() => { setDescuentoTipo('monto'); setDescuento(0); }}
-                  >$</button>
-                </div>
-              </div>
-              {descuentoTipo === 'porcentaje' ? (
-                <div className="desc-btns">
-                  {[0, 10, 15, 20, 25].map(d => (
-                    <button
-                      key={d}
-                      type="button"
-                      className={`btn-desc${descuento === d ? ' activo' : ''}`}
-                      onClick={() => setDescuento(d)}
-                    >{d}%</button>
-                  ))}
-                </div>
-              ) : (
-                <input
-                  type="number"
-                  className="desc-monto-input"
-                  placeholder="Monto descuento..."
-                  value={descuento || ''}
-                  onChange={e => setDescuentoSeguro(e.target.value)}
-                  min="0"
-                  step="0.01"
-                />
-              )}
+            <div className="desc-btns">
+              {[0, 10, 15, 20, 25].map(d => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`btn-op${descuento === d ? ' btn-op--activo' : ''}`}
+                  onClick={() => { setDescuentoTipo('porcentaje'); setDescuento(d); }}
+                >{d}%</button>
+              ))}
             </div>
-            <div className="carrito-metodo">
-              <span className="carrito-label">Pago</span>
-              <div className="metodo-btns">
-                {[
-                  { value: 'efectivo',      emoji: '💵', label: 'Efectivo' },
-                  { value: 'tarjeta',       emoji: '💳', label: 'Tarjeta' },
-                  { value: 'transferencia', emoji: '🏦', label: 'Transf.' },
-                ].map(m => (
-                  <button
-                    key={m.value}
-                    type="button"
-                    className={`btn-metodo${metodoPago === m.value ? ' activo' : ''}`}
-                    onClick={() => setMetodoPago(m.value)}
-                    title={m.label}
-                  >
-                    <span className="metodo-emoji">{m.emoji}</span>
-                    <span className="metodo-label">{m.label}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="metodo-btns">
+              {[
+                { value: 'efectivo', label: '💵' },
+                { value: 'tarjeta', label: '💳' },
+                { value: 'transferencia', label: '🏦' },
+              ].map(m => (
+                <button
+                  key={m.value}
+                  type="button"
+                  className={`btn-op${metodoPago === m.value ? ' btn-op--activo' : ''}`}
+                  onClick={() => setMetodoPago(m.value)}
+                >{m.label}</button>
+              ))}
             </div>
           </div>
 
-          {/* Monto recibido + billetero */}
+          {/* ── Monto recibido + TOTAL ── */}
           <div className="carrito-recibido">
             <div className="recibido-row">
+              <button
+                type="button"
+                className="btn-exacto"
+                onClick={() => setMontoRecibido(String(totalConDesc))}
+                disabled={totalConDesc <= 0}
+              >=</button>
               <input
                 type="number"
                 className="recibido-input"
@@ -474,75 +527,48 @@ const VentaForm = ({ productosDisponibles, categorias = [], onSubmit }) => {
                 step="0.01"
               />
               {montoRecibido && (
-                <button
-                  type="button"
-                  className="btn-limpiar"
-                  onClick={() => setMontoRecibido('')}
-                >✕</button>
+                <button type="button" className="btn-limpiar" onClick={() => setMontoRecibido('')}>✕</button>
               )}
+              <div className="recibido-total-badge">
+                <span className="rtb-label">TOTAL</span>
+                <span className="rtb-monto">${totalConDesc.toFixed(2)}</span>
+              </div>
             </div>
-
-            <div className="billetero">
-              <button
-                type="button"
-                className="btn-exacto"
-                onClick={() => setMontoRecibido(String(totalConDesc))}
-                disabled={totalConDesc <= 0}
-                title="Monto exacto (F4)"
-              >= Exacto</button>
-              {[1000, 500, 200, 100, 50, 20].map(val => (
-                <button
-                  key={val}
-                  type="button"
-                  className="btn-billete"
-                  onClick={() => setMontoRecibido(prev => String((parseFloat(prev) || 0) + val))}
-                >${val}</button>
-              ))}
-              {[10, 5, 2, 1].map(val => (
-                <button
-                  key={val}
-                  type="button"
-                  className="btn-moneda"
-                  onClick={() => setMontoRecibido(prev => String((parseFloat(prev) || 0) + val))}
-                >${val}</button>
-              ))}
-            </div>
-
             {montoRecibido && recibido >= totalConDesc && (
-              <p className="cambio-ok">💵 Cambio: <strong>${calcularCambio().toFixed(2)}</strong></p>
+              <p className="cambio-ok">Cambio: <strong>${calcularCambio().toFixed(2)}</strong></p>
             )}
             {montoRecibido && recibido < totalConDesc && (
-              <p className="cambio-falta">⚠️ Faltan: ${(totalConDesc - recibido).toFixed(2)}</p>
+              <p className="cambio-falta">Faltan: ${(totalConDesc - recibido).toFixed(2)}</p>
             )}
           </div>
 
-          {/* Total + COBRAR */}
-          <div className="carrito-footer">
-            {descuento > 0 && (
-              <p className="carrito-subtotal">
-                Subtotal: ${calcularTotal().toFixed(2)}
-                {descuentoTipo === 'porcentaje' ? ` (−${descuento}%)` : ` (−$${descuento.toFixed(2)})`}
-              </p>
-            )}
-            <div className="carrito-total-box">
-              <span className="carrito-total-label">Total</span>
-              <span className="carrito-total-monto">${totalConDesc.toFixed(2)}</span>
+          {/* ── Billetero: 2 columnas (billetes | monedas) ── */}
+          <div className="billetero">
+            <div className="billetero-col">
+              {[1000, 500, 200, 100, 50, 20].map(val => (
+                <button key={val} type="button" className="btn-billete"
+                  onClick={() => setMontoRecibido(prev => String((parseFloat(prev) || 0) + val))}
+                >${val}</button>
+              ))}
             </div>
-            <button
-              className="btn-cobrar"
-              onClick={handleSubmit}
-              disabled={items.length === 0 || registrando}
-            >
-              {registrando ? 'Registrando...' : '✅ COBRAR'}
-            </button>
+            <div className="billetero-col billetero-col--monedas">
+              {[10, 5, 2, 1].map(val => (
+                <button key={val} type="button" className="btn-moneda"
+                  onClick={() => setMontoRecibido(prev => String((parseFloat(prev) || 0) + val))}
+                >${val}</button>
+              ))}
+            </div>
           </div>
 
-          {/* Atajos info */}
-          <div className="atajos-info">
-            <span>F2 Buscar</span>
-            <span>Esc Limpiar</span>
-            <span>Ctrl+Enter Cobrar</span>
-          </div>
+          {/* ── COBRAR ── */}
+          <button
+            className="btn-cobrar"
+            onClick={handleSubmit}
+            disabled={items.length === 0 || registrando}
+          >
+            {registrando ? 'Registrando...' : '✅ COBRAR'}
+            <span className="btn-cobrar-shortcut">Ctrl+Enter</span>
+          </button>
         </div>
       </div>
     </>

@@ -43,6 +43,9 @@ const ProductoGrid = ({ productos, onEdit, onBarcode, onResurtir }) => {
 
             <div className="grid-card-body">
               <h4 className="grid-card-nombre">{p.nombre}</h4>
+              {p.descripcion && p.descripcion !== 'Sin descripcion' && (
+                <p className="grid-card-desc">{p.descripcion}</p>
+              )}
               {p.codigo && <span className="grid-card-codigo">#{p.codigo}</span>}
 
               <div className="grid-card-precios">

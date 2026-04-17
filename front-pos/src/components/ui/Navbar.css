@@ -1,184 +1,298 @@
-.navbar {
-  position: sticky;
-  width: 100%;
-  top: 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  background-color: var(--navbar-fondo);
-  color: var(--navbar-texto);
-  padding: 0.75rem 2rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.327);
-  font-weight: 500;
-  z-index: 100;
-  gap: 0.5rem;
+/* ═══════════════════════════════════════════════════════════
+   Sidebar lateral izquierdo, colapsado por defecto
+   - Colapsado: 64px (solo íconos)
+   - Expandido: 230px (íconos + etiquetas)
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --nav-w-colapsado: 78px;
+  --nav-w-expandido: 240px;
 }
 
-.navbar-brand {
-  font-size: 20px;
-  font-weight: bold;
+/* Contenedor principal: deja espacio al sidebar */
+.app-main {
+  padding-left: var(--nav-w-colapsado);
+  min-height: 100vh;
+  transition: padding-left 0.22s ease;
+}
+
+.navbar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--nav-w-colapsado);
+  background-color: var(--navbar-fondo);
+  color: var(--navbar-texto);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  font-weight: 500;
+  transition: width 0.22s ease;
+  overflow: hidden;
+}
+
+.navbar--expandido {
+  width: var(--nav-w-expandido);
+}
+
+/* Overlay oscuro mientras está expandido (solo visible del nav hacia la derecha) */
+.navbar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 99;
+  animation: navOverlay 0.2s ease;
+}
+
+@keyframes navOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Botón hamburguesa / cerrar ── */
+.navbar-toggle {
+  background: transparent;
+  border: none;
+  color: var(--navbar-texto);
+  font-size: 1.15rem;
+  cursor: pointer;
+  padding: 14px 0;
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--texto-invertido);
-  white-space: nowrap;
+  justify-content: center;
+  transition: background 0.15s;
   flex-shrink: 0;
 }
 
-.navbar-brand img {
-  height: 32px;
-  width: 32px;
-  object-fit: contain;
+.navbar-toggle:hover {
+  background: var(--navbar-hover);
 }
 
-/* Links — horizontales en desktop */
+/* ── Marca (logo + nombre) ── */
+.navbar-brand {
+  display: block;
+  position: relative;
+  height: 64px;
+  color: var(--texto-invertido);
+  font-size: 16px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  flex-shrink: 0;
+  padding-left: 60px;          /* espacio para logo + gap */
+  line-height: 64px;
+}
+
+.navbar-brand img {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 40px;
+  width: 40px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* ── Links de navegación ── */
 .navbar-links {
   display: flex;
-  gap: 0.1rem;
+  flex-direction: column;
   flex: 1;
-  justify-content: center;
-  flex-wrap: wrap;
+  padding: 14px 0px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  gap: 6px;
 }
 
+/*
+   Los íconos están en posición fija (padding-left + margin constantes).
+   Las etiquetas se animan tipo acordeón (max-width 0 → 180px).
+   Con nav 78px y padding-left 20px + margin 6px = 26px desde el borde → icono centrado.
+*/
+/* Anchor como contenedor de posición. Icono absoluto → NO se mueve. */
+/*
+   nav 78px, anchor margin 8 cada lado → anchor width 62px
+   Icono en left:18 (dentro del anchor) → ícono centrado en nav: 8+18+13 = 39
+   Padding-left 48 (18 icono + 26 width + 4 gap) deja label a partir de 48
+*/
 .navbar-links a {
   color: var(--navbar-texto);
   text-decoration: none;
-  padding: 6px 9px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-  position: relative;
+  display: block;
+  font-size: 14px;
   white-space: nowrap;
+  position: relative;
+  transition: background 0.18s, box-shadow 0.18s;
+  border-radius: 12px;
+  height: 48px;
+  line-height: 48px;
+  padding-left: 38px;
+  padding-right: 8px;
+  margin: 0 2px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.navbar-links a.nav-activo {
-  background-color: var(--navbar-hover);
-  color: var(--texto-invertido);
-  font-weight: 700;
-  box-shadow: inset 0 -3px 0 var(--boton-primario, #9967CE);
+.navbar-links a svg {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
 }
 
 .navbar-links a:hover {
   background-color: var(--navbar-hover);
-  color: var(--texto-invertido);
 }
 
-.navbar-right {
+/* Activo COLAPSADO: píldora que envuelve solo el ícono (no el anchor completo) */
+.navbar:not(.navbar--expandido) .navbar-links a.nav-activo {
+  background-color: transparent;
+  color: #fff;
+}
+
+.navbar:not(.navbar--expandido) .navbar-links a.nav-activo::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 38px;                  /* 6 margen + 26 icono + 6 = píldora pegada al icono */
+  height: 40px;
+  background: var(--boton-primario, #9967CE);
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(153, 103, 206, 0.35);
+  pointer-events: none;
+}
+
+/* Activo: EXPANDIDO = rectángulo con borde izquierdo */
+.navbar--expandido .navbar-links a.nav-activo {
+  background-color: var(--navbar-hover);
+  color: var(--texto-invertido);
+  font-weight: 700;
+  box-shadow: inset 4px 0 0 var(--boton-primario, #9967CE);
+}
+
+/* ── Bottom section: bell + tema ── */
+.navbar-bottom {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 6px 14px;
+  border-top: 1px solid rgba(255,255,255,0.12);
   flex-shrink: 0;
 }
 
-.navbar-bell {
-  position: relative;
+.navbar-bell,
+.btn-dark-toggle {
   background: transparent;
   border: none;
   color: var(--navbar-texto);
-  font-size: 1.1rem;
   cursor: pointer;
-  padding: 6px 8px;
-  border-radius: 6px;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
+  display: block;
+  font-size: 14px;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.18s;
+  width: calc(100% - 4px);
+  position: relative;
+  border-radius: 12px;
+  height: 48px;
+  line-height: 48px;
+  padding-left: 38px;
+  padding-right: 8px;
+  margin: 0 2px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.navbar-bell:hover {
-  background: var(--navbar-hover);
-}
-
-.navbar-badge {
+.navbar-bell svg,
+.btn-dark-toggle > span[aria-hidden="true"] {
   position: absolute;
-  top: -4px;
-  right: -6px;
-  background: #e53935;
-  color: #fff;
-  font-size: 0.6rem;
-  font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 8px;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.4rem;
+  width: 26px;
+  height: 26px;
+  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+}
+
+.navbar-bell:hover,
+.btn-dark-toggle:hover {
+  background: var(--navbar-hover);
+}
+
+/* ── Etiquetas: fade-in. El overflow: hidden del anchor ya las oculta. ── */
+.navbar-label,
+.navbar-brand-texto {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.navbar--expandido .navbar-label,
+.navbar--expandido .navbar-brand-texto {
+  opacity: 1;
+}
+
+/* ── Badge (contador): arriba-derecha del ícono ── */
+.navbar-badge {
+  position: absolute;
+  top: 4px;
+  left: 22px;                 /* icono left 6 + 16 = esquina sup-der del ícono */
+  background: #e53935;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
   line-height: 1;
+  border: 2px solid var(--navbar-fondo);
+  z-index: 2;
 }
 
 .navbar-badge--bell {
   background: var(--boton-primario);
 }
 
-/* Botón hamburguesa — oculto en desktop */
-.navbar-hamburger {
-  display: none;
-  background: transparent;
-  border: none;
-  color: var(--navbar-texto);
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 6px 8px;
-  border-radius: 6px;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
+/* ── Scrollbar sutil en links ── */
+.navbar-links::-webkit-scrollbar { width: 4px; }
+.navbar-links::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 
-.navbar-hamburger:hover {
-  background: var(--navbar-hover);
-}
-
-/* ── Mobile (<= 768px) ── */
-@media (max-width: 768px) {
-  .navbar {
-    flex-wrap: wrap;
-    padding: 0.75rem 1rem 0;
-    align-items: center;
+/* ── Mobile (<=560px) ── */
+@media (max-width: 560px) {
+  :root {
+    --nav-w-colapsado: 60px;
   }
-
+  .navbar-links a,
+  .navbar-bell,
+  .btn-dark-toggle {
+    margin: 0 6px;
+    padding-left: 46px;
+  }
+  .navbar-links a svg,
+  .navbar-bell svg,
+  .btn-dark-toggle > span[aria-hidden="true"] {
+    left: 10px;
+  }
   .navbar-brand {
-    flex: 1;
+    padding-left: 66px;
   }
-
-  .navbar-hamburger {
-    display: flex;
-  }
-
-  /* Links ocultos por defecto, desplegables */
-  .navbar-links {
-    display: none;
-    width: 100%;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    margin-top: 0.5rem;
-  }
-
-  .navbar-links.open {
-    display: flex;
-  }
-
-  .navbar-links a {
-    padding: 12px 1rem;
-    border-radius: 0;
-    font-size: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    gap: 10px;
-    justify-content: flex-start;
-  }
-
-  .navbar-links a:last-child {
-    border-bottom: none;
-    margin-bottom: 0.25rem;
-  }
-
-  .navbar-right {
-    padding-bottom: 0.25rem;
+  .navbar-brand img {
+    left: 8px;
+    height: 44px;
+    width: 44px;
   }
 }

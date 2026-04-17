@@ -276,7 +276,7 @@ exports.resurtirProducto = async (req, res, next) => {
 
 // Registrar egreso
 exports.agregarEgreso = async (req, res, next) => {
-  const { monto, concepto } = req.body || {};
+  const { monto, concepto, fecha } = req.body || {};
 
   const montoNum = Number(monto);
   if (!Number.isFinite(montoNum) || montoNum <= 0) {
@@ -295,13 +295,82 @@ exports.agregarEgreso = async (req, res, next) => {
     conceptoLimpio = concepto.trim().slice(0, 200) || null;
   }
 
+  // Validar fecha (opcional): si viene, debe ser parseable
+  let fechaFinal = null;
+  if (fecha != null && fecha !== '') {
+    const d = new Date(fecha);
+    if (isNaN(d.getTime())) {
+      return res.status(400).json({ error: 'Fecha inválida' });
+    }
+    fechaFinal = d;
+  }
+
   try {
-    await pool.query(
-      'INSERT INTO egresos (monto, concepto) VALUES ($1, $2)',
-      [montoNum, conceptoLimpio]
-    );
+    if (fechaFinal) {
+      await pool.query(
+        'INSERT INTO egresos (monto, concepto, fecha) VALUES ($1, $2, $3)',
+        [montoNum, conceptoLimpio, fechaFinal]
+      );
+    } else {
+      await pool.query(
+        'INSERT INTO egresos (monto, concepto) VALUES ($1, $2)',
+        [montoNum, conceptoLimpio]
+      );
+    }
     res.status(201).json({ mensaje: 'Egreso registrado correctamente' });
   } catch (error) {
     next(error);
+  }
+};
+
+// Resurtir múltiples productos en una sola transacción
+exports.resurtirMasivo = async (req, res, next) => {
+  const { items } = req.body || {};
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Lista de productos vacía' });
+  }
+  if (items.length > 500) {
+    return res.status(400).json({ error: 'Máximo 500 productos por operación' });
+  }
+
+  // Validar cada item
+  const normalizados = [];
+  for (const it of items) {
+    const idNum = parseInt(it?.id, 10);
+    const cantNum = Number(it?.cantidad);
+    if (!Number.isInteger(idNum) || idNum <= 0) {
+      return res.status(400).json({ error: `ID inválido: ${it?.id}` });
+    }
+    if (!Number.isInteger(cantNum) || cantNum <= 0 || cantNum > 100000) {
+      return res.status(400).json({ error: `Cantidad inválida para producto ${idNum}` });
+    }
+    normalizados.push({ id: idNum, cantidad: cantNum });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const actualizados = [];
+    for (const { id, cantidad } of normalizados) {
+      const result = await client.query(
+        `UPDATE productos SET stock = stock + $1
+         WHERE id = $2 AND (stock + $1) <= 2000000000
+         RETURNING id, nombre, stock`,
+        [cantidad, id]
+      );
+      if (result.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: `No se pudo resurtir producto ID ${id} (no existe o excede límite)` });
+      }
+      actualizados.push(result.rows[0]);
+    }
+    await client.query('COMMIT');
+    res.status(200).json({ mensaje: `${actualizados.length} producto(s) resurtido(s)`, productos: actualizados });
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    next(error);
+  } finally {
+    client.release();
   }
 };

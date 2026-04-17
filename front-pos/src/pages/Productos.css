@@ -45,6 +45,48 @@
   transform: translateY(-1px);
 }
 
+.btn-egreso {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: transparent;
+  color: #e67e22;
+  border: 1.5px solid #e67e22;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-egreso:hover {
+  background-color: #e67e22;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-surtir {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: transparent;
+  color: #27ae60;
+  border: 1.5px solid #27ae60;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-surtir:hover {
+  background-color: #27ae60;
+  color: white;
+  transform: translateY(-1px);
+}
+
 .productos-header-acciones {
   display: flex;
   align-items: center;
@@ -243,6 +285,21 @@
   color: var(--texto-secundario);
 }
 
+/* ── Formulario de egreso dentro del drawer ── */
+.egreso-form { display: flex; flex-direction: column; gap: 14px; }
+.egreso-campo { display: flex; flex-direction: column; gap: 4px; }
+.egreso-campo label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+.egreso-opcional {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--texto-secundario);
+  margin-left: 4px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .productos-page {
@@ -255,9 +312,16 @@
     gap: 1rem;
   }
 
-  .btn-nuevo-producto {
-    width: 100%;
+  .btn-nuevo-producto,
+  .btn-egreso,
+  .btn-surtir {
+    flex: 1;
     justify-content: center;
+  }
+
+  .productos-header-acciones {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .filtros-productos > * {

@@ -4,7 +4,7 @@ import api from '../services/api';
 import { useToast } from '../components/ui/Toast';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import Spinner from '../components/ui/Spinner';
-import { FaPlus, FaThList, FaTh } from 'react-icons/fa';
+import { FaPlus, FaThList, FaTh, FaMoneyBillWave, FaBoxes } from 'react-icons/fa';
 
 // Componentes
 import FiltrosProducto from '../components/productos/FiltroProductos';
@@ -12,6 +12,8 @@ import ProductoTable from '../components/productos/ProductoList';
 import ProductoGrid from '../components/productos/ProductoGrid';
 import ProductoDrawer from '../components/productos/ProductoDrawer';
 import CodigoBarrasModal from '../components/productos/CodigoBarrasModal';
+import EgresoDrawer from '../components/faltantes/EgresoDrawer';
+import ResurtirMasivoDrawer from '../components/productos/ResurtirMasivoDrawer';
 
 const ITEMS_POR_PAGINA = 15;
 
@@ -24,6 +26,8 @@ const Productos = () => {
   const [pagina, setPagina] = useState(1);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [vistaGrid, setVistaGrid] = useState(false);
+  const [mostrarEgresos, setMostrarEgresos] = useState(false);
+  const [mostrarResurtir, setMostrarResurtir] = useState(false);
 
   const [verificando, setVerificando] = useState(false);
 
@@ -306,11 +310,37 @@ const Productos = () => {
               <FaTh />
             </button>
           </div>
+          <button
+            className="btn-surtir"
+            onClick={() => setMostrarResurtir(true)}
+            title="Surtir varios productos"
+          >
+            <FaBoxes /> Surtir
+          </button>
+          <button
+            className="btn-egreso"
+            onClick={() => setMostrarEgresos(true)}
+            title="Registrar egreso"
+          >
+            <FaMoneyBillWave /> Egreso
+          </button>
           <button className="btn-nuevo-producto" onClick={abrirNuevo}>
             <FaPlus /> Nuevo Producto
           </button>
         </div>
       </div>
+
+      <EgresoDrawer
+        visible={mostrarEgresos}
+        onCerrar={() => setMostrarEgresos(false)}
+      />
+
+      <ResurtirMasivoDrawer
+        visible={mostrarResurtir}
+        onCerrar={() => setMostrarResurtir(false)}
+        productos={productos}
+        onResurtido={cargarProductos}
+      />
 
       {/* Filtros */}
       <FiltrosProducto
@@ -376,6 +406,7 @@ const Productos = () => {
           )}
         </>
       )}
+
     </div>
   );
 };

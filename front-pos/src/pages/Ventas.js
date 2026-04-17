@@ -4,7 +4,6 @@ import VentaForm from '../components/ventas/VentaForm';
 import HistorialVentas from '../components/ventas/VentasList';
 import Spinner from '../components/ui/Spinner';
 import { useToast } from '../components/ui/Toast';
-import ResumenCaja from '../components/ventas/ResumenCaja';
 import './Ventas.css';
 
 const Ventas = () => {
@@ -15,7 +14,6 @@ const Ventas = () => {
   const [verReportes, setVerReportes] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
-  const [ventaCounter, setVentaCounter] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +73,6 @@ const Ventas = () => {
     try {
       const res = await api.post('/ventas', ventaData);
       await Promise.all([cargarProductos(), cargarVentas()]);
-      setVentaCounter(c => c + 1);
       return res.data;
     } catch (err) {
       throw err;
@@ -84,7 +81,6 @@ const Ventas = () => {
 
   return (
     <div className="ventas-page">
-      <ResumenCaja refreshKey={ventaCounter} productosCache={productos} />
       <div className="ventas-pos-section">
         {cargando ? (
           <Spinner texto="Cargando productos..." />

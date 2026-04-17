@@ -193,6 +193,20 @@
 
 .tpm-btn-email:hover { opacity: 0.85; }
 
+.tpm-btn-editar {
+  padding: 8px 14px;
+  background: #f39c12;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.tpm-btn-editar:hover { opacity: 0.85; }
+
 @media print {
   body * { visibility: hidden; }
   #ticket-print-area, #ticket-print-area * { visibility: visible; }

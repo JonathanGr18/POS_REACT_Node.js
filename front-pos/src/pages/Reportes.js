@@ -4,8 +4,6 @@ import { useToast } from '../components/ui/Toast';
 import './Reportes.css';
 import KPIsReportes from '../components/reportes/KPIsReportes';
 import GraficaPeriodo from '../components/reportes/GraficaPeriodo';
-import GraficaMeses from '../components/reportes/GraficaMeses';
-import HeatmapAnual from '../components/reportes/HeatmapAnual';
 import TopProductos from '../components/reportes/TopProductos';
 import TicketPreviewModal from '../components/reportes/TicketPreviewModal';
 import GraficaDiaSemana from '../components/reportes/GraficaDiaSemana';
@@ -398,6 +396,16 @@ const Reportes = () => {
         <TicketPreviewModal
           venta={ticketSeleccionado}
           onCerrar={() => setTicketSeleccionado(null)}
+          onVentaModificada={() => {
+            // Recargar datos del periodo tras modificar/anular venta
+            setTicketSeleccionado(null);
+            setExpandido({});
+            setDetalles({});
+            // Trigger re-fetch via cambio de deps
+            const d = desde;
+            setDesde('');
+            setTimeout(() => setDesde(d), 0);
+          }}
         />
       )}
 
@@ -469,18 +477,12 @@ const Reportes = () => {
       {/* ── Gráfica de ventas diarias del período ── */}
       <GraficaPeriodo dias={dias} />
 
-      {/* ── Gráficas: día semana + hora pico + método pago ── */}
+      {/* ── Gráficas: día semana + método pago + hora pico ── */}
       <div className="reportes-charts-row">
         <GraficaDiaSemana dias={dias} />
+        <GraficaMetodoPago desde={desde} hasta={hasta} />
         <GraficaHoraPico desde={desde} hasta={hasta} />
       </div>
-      <GraficaMetodoPago desde={desde} hasta={hasta} />
-
-      {/* ── Gráfica mensual ── */}
-      <GraficaMeses />
-
-      {/* ── Heatmap anual ── */}
-      <HeatmapAnual />
 
       {/* ── Días sin ventas ── */}
       {diasSinVentas.length > 0 && (

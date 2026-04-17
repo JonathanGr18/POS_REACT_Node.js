@@ -8,6 +8,8 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
   const searchTermDebounced = useDebounce(searchTerm, 400);
   const [orden, setOrden] = useState('nombre');
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+  const [vistaLista, setVistaLista] = useState(false);
+  const [buscarPor, setBuscarPor] = useState('todo'); // 'todo' | 'codigo' | 'nombre' | 'descripcion' | 'precio'
   const [selIndex, setSelIndex] = useState(0);
   const gridRef = useRef(null);
   const [numCols, setNumCols] = useState(1);
@@ -44,14 +46,25 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
       .filter(p => {
         if (categoriaFiltro !== 'todas' && (p.categoria || 'General') !== categoriaFiltro) return false;
         if (!valor) return true;
-        const codigoStr = String(p.codigo ?? '');
-        if (esNumero) {
-          return Number(p.codigo) === Number(valor) || codigoStr.startsWith(valor);
+        const codigoStr = String(p.codigo ?? '').toLowerCase();
+        const nombre = (p.nombre || '').toLowerCase();
+        const desc = (p.descripcion || '').toLowerCase();
+
+        switch (buscarPor) {
+          case 'codigo':
+            return Number(p.codigo) === Number(valor) || codigoStr.startsWith(valor) || codigoStr.includes(valor);
+          case 'nombre':
+            return nombre.includes(valor);
+          case 'descripcion':
+            return desc.includes(valor);
+          case 'precio':
+            return String(Number(p.precio).toFixed(2)).includes(valor) || String(Number(p.precio)).startsWith(valor);
+          default: // 'todo'
+            if (esNumero) {
+              return Number(p.codigo) === Number(valor) || codigoStr.startsWith(valor);
+            }
+            return nombre.includes(valor) || desc.includes(valor) || codigoStr.includes(valor);
         }
-        return (
-          (p.nombre || '').toLowerCase().includes(valor) ||
-          (p.descripcion || '').toLowerCase().includes(valor)
-        );
       });
 
     return [...filtrados].sort((a, b) => {
@@ -60,7 +73,7 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
       if (orden === 'precio_desc') return Number(b.precio) - Number(a.precio);
       return 0;
     });
-  }, [productos, searchTermDebounced, orden, categoriaFiltro]);
+  }, [productos, searchTermDebounced, orden, categoriaFiltro, buscarPor]);
 
   // Resetear selección al cambiar búsqueda
   useEffect(() => { setSelIndex(0); }, [searchTermDebounced]);
@@ -80,29 +93,28 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
       return;
     }
 
-    // Enter: bypass debounce (importante para lectores de código de barras)
+    // Ctrl+Enter → dejar pasar al handler global (cobrar)
+    if (e.ctrlKey && e.key === 'Enter') {
+      return; // No consumir, el global de VentaForm lo captura
+    }
+
+    // Enter solo (sin Ctrl): agregar producto seleccionado
     if (e.key === 'Enter') {
       const valor = searchTerm.trim().toLowerCase();
-      // Busqueda inmediata sin esperar debounce
       if (valor) {
-        const esNum = !isNaN(Number(valor));
-        // Match exacto por codigo primero (scanner)
-        let match = productos.find(p =>
-          Number(p.stock) > 0 && String(p.codigo ?? '').toLowerCase() === valor
-        );
-        if (!match && esNum) {
-          match = productos.find(p => Number(p.stock) > 0 && Number(p.codigo) === Number(valor));
-        }
-        // Si no hay exacto, usar el seleccionado del filtrado actual
-        if (!match) {
-          match = productosFiltrados[selIndex] || productosFiltrados[0];
-        }
+        // Usar el item seleccionado actualmente en la lista filtrada
+        const match = productosFiltrados[selIndex] || productosFiltrados[0];
         if (match) {
           const stockDisponible = Number(match.stock) - (carritoMap[match.id] || 0);
           if (stockDisponible > 0) {
             onSelect?.(match);
-            setSearchTerm('');
-            setSelIndex(0);
+            // Si buscó por código exacto (scanner), limpiar input
+            const fueScanner = buscarPor === 'codigo' ||
+              String(match.codigo ?? '').toLowerCase() === valor;
+            if (fueScanner) {
+              setSearchTerm('');
+              setSelIndex(0);
+            }
           }
         }
       }
@@ -112,19 +124,36 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
     const total = productosFiltrados.length;
     if (total === 0) return;
 
-    if (e.key === 'ArrowRight') {
+    // En vista lista: flechas arriba/abajo mueven de 1 en 1
+    // En vista grid: flechas mueven por columnas
+    const step = vistaLista ? 1 : numCols;
+
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
-      mover(+1);
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      mover(-1);
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      mover(+numCols);
+      mover(+step);
+      scrollToSelected(selIndex + step);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      mover(-numCols);
+      mover(-step);
+      scrollToSelected(selIndex - step);
+    } else if (!vistaLista && e.key === 'ArrowRight') {
+      e.preventDefault();
+      mover(+1);
+      scrollToSelected(selIndex + 1);
+    } else if (!vistaLista && e.key === 'ArrowLeft') {
+      e.preventDefault();
+      mover(-1);
+      scrollToSelected(selIndex - 1);
     }
+  };
+
+  // Auto-scroll al item seleccionado con flechas
+  const scrollToSelected = (idx) => {
+    const clamped = Math.max(0, Math.min(idx, productosFiltrados.length - 1));
+    setTimeout(() => {
+      const el = gridRef.current?.querySelector(`[data-idx="${clamped}"]`);
+      if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 0);
   };
 
   return (
@@ -133,17 +162,36 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
         <input
           className="plv-busqueda"
           type="text"
-          placeholder="🔍 Buscar y Enter para agregar... (F2)"
+          placeholder={buscarPor === 'codigo' ? '🔍 Buscar por código...' :
+                       buscarPor === 'nombre' ? '🔍 Buscar por nombre...' :
+                       buscarPor === 'descripcion' ? '🔍 Buscar por descripción...' :
+                       buscarPor === 'precio' ? '🔍 Buscar por precio...' :
+                       '🔍 Buscar producto... (F2)'}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleKeyDown}
           id="plv-busqueda-input"
         />
-        <select className="plv-orden" value={orden} onChange={(e) => setOrden(e.target.value)}>
+        <select className="plv-buscar-por" value={buscarPor} onChange={(e) => setBuscarPor(e.target.value)} aria-label="Buscar por">
+          <option value="todo">Todo</option>
+          <option value="codigo">Código</option>
+          <option value="nombre">Nombre</option>
+          <option value="descripcion">Descripción</option>
+          <option value="precio">Precio</option>
+        </select>
+        <select className="plv-orden" value={orden} onChange={(e) => setOrden(e.target.value)} aria-label="Ordenar por">
           <option value="nombre">A–Z</option>
           <option value="precio_asc">Precio ↑</option>
           <option value="precio_desc">Precio ↓</option>
         </select>
+        <button
+          className="plv-vista-toggle"
+          onClick={() => setVistaLista(v => !v)}
+          title={vistaLista ? 'Vista cuadrícula' : 'Vista lista'}
+          aria-label={vistaLista ? 'Cambiar a vista cuadrícula' : 'Cambiar a vista lista'}
+        >
+          {vistaLista ? '▦' : '☰'}
+        </button>
       </div>
 
       {categorias.length > 0 && (
@@ -162,42 +210,95 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
         </div>
       )}
 
-      <div className="plv-grid" ref={gridRef}>
-        {productosFiltrados.length > 0 ? (
-          productosFiltrados.map((producto, idx) => {
-            const qty = carritoMap[producto.id] || 0;
-            const stockVisual = producto.stock - qty;
-            const agotado = stockVisual <= 0;
-            const activo = idx === selIndex;
-            return (
-              <div
-                key={producto.id}
-                className={`plv-card${agotado ? ' plv-card--agotado' : ''}${activo ? ' plv-card--activo' : ''}`}
-                onClick={() => { setSelIndex(idx); !agotado && onSelect?.(producto); }}
-              >
-                {qty > 0 && <span className="plv-qty-badge">{qty}</span>}
-                {producto.imagen_url
-                  ? <img
-                      src={`${IMAGE_BASE_URL}${producto.imagen_url}`}
-                      alt=""
-                      className="plv-card-img"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  : <div className="plv-card-img-placeholder" aria-hidden="true">📦</div>
-                }
-                <p className="plv-nombre">{producto.nombre}</p>
-                <p className="plv-precio">${Number(producto.precio).toFixed(2)}</p>
-                <p className={`plv-stock plv-stock--${stockVisual < 15 ? 'bajo' : 'ok'}`}>
-                  Stock: {stockVisual}
-                </p>
-              </div>
-            );
-          })
-        ) : (
-          <p className="plv-empty">No se encontraron productos</p>
-        )}
-      </div>
+      {/* ── Vista GRID (cards) ── */}
+      {!vistaLista && (
+        <div className="plv-grid" ref={gridRef}>
+          {productosFiltrados.length > 0 ? (
+            productosFiltrados.map((producto, idx) => {
+              const qty = carritoMap[producto.id] || 0;
+              const stockVisual = producto.stock - qty;
+              const agotado = stockVisual <= 0;
+              const activo = idx === selIndex;
+              return (
+                <div
+                  key={producto.id}
+                  data-idx={idx}
+                  className={`plv-card${agotado ? ' plv-card--agotado' : ''}${activo ? ' plv-card--activo' : ''}`}
+                  onClick={() => { setSelIndex(idx); !agotado && onSelect?.(producto); }}
+                >
+                  {qty > 0 && <span className="plv-qty-badge">{qty}</span>}
+                  {producto.imagen_url
+                    ? <img src={`${IMAGE_BASE_URL}${producto.imagen_url}`} alt="" className="plv-card-img" loading="lazy" decoding="async" />
+                    : <div className="plv-card-img-placeholder" aria-hidden="true">📦</div>
+                  }
+                  <p className="plv-nombre">{producto.nombre}</p>
+                  {producto.descripcion && producto.descripcion !== 'Sin descripcion' && (
+                    <p className="plv-desc">{producto.descripcion}</p>
+                  )}
+                  <p className="plv-precio">${Number(producto.precio).toFixed(2)}</p>
+                  <p className="plv-codigo">#{producto.codigo}</p>
+                  <p className={`plv-stock plv-stock--${stockVisual < 15 ? 'bajo' : 'ok'}`}>
+                    Stock: {stockVisual}
+                  </p>
+                </div>
+              );
+            })
+          ) : (
+            <p className="plv-empty">No se encontraron productos</p>
+          )}
+        </div>
+      )}
+
+      {/* ── Vista LISTA (tabla) ── */}
+      {vistaLista && (
+        <div className="plv-tabla-wrap" ref={gridRef}>
+          <table className="plv-tabla">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th></th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Stock</th>
+                <th>Precio</th>
+              </tr>
+            </thead>
+            <tbody>
+              {productosFiltrados.length > 0 ? (
+                productosFiltrados.map((producto, idx) => {
+                  const qty = carritoMap[producto.id] || 0;
+                  const stockVisual = producto.stock - qty;
+                  const agotado = stockVisual <= 0;
+                  const activo = idx === selIndex;
+                  return (
+                    <tr
+                      key={producto.id}
+                      data-idx={idx}
+                      className={`plv-fila${agotado ? ' plv-fila--agotado' : ''}${activo ? ' plv-fila--activo' : ''}`}
+                      onClick={() => { setSelIndex(idx); !agotado && onSelect?.(producto); }}
+                    >
+                      <td className="plv-td-id">{producto.codigo}</td>
+                      <td className="plv-td-img">
+                        {producto.imagen_url
+                          ? <img src={`${IMAGE_BASE_URL}${producto.imagen_url}`} alt="" className="plv-mini-img" loading="lazy" />
+                          : <span className="plv-mini-placeholder">📦</span>
+                        }
+                        {qty > 0 && <span className="plv-fila-badge">{qty}</span>}
+                      </td>
+                      <td className="plv-td-nombre">{producto.nombre}</td>
+                      <td className="plv-td-desc">{producto.descripcion && producto.descripcion !== 'Sin descripcion' ? producto.descripcion : '—'}</td>
+                      <td className={`plv-td-stock ${stockVisual < 15 ? 'plv-stock--bajo' : 'plv-stock--ok'}`}>{stockVisual}</td>
+                      <td className="plv-td-precio">${Number(producto.precio).toFixed(2)}</td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr><td colSpan="6" className="plv-empty">No se encontraron productos</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

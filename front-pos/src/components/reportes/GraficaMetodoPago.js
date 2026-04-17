@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../services/api';
 import './GraficaMetodoPago.css';
 
-const ICONOS = { efectivo: '💵', tarjeta: '💳', transferencia: '🏦' };
-const COLORES = {
-  efectivo:      'var(--boton-exito)',
-  tarjeta:       'var(--boton-primario)',
-  transferencia: '#f5a623',
+const META = {
+  efectivo:      { icono: '💵', label: 'Efectivo',      color: 'var(--boton-exito)' },
+  tarjeta:       { icono: '💳', label: 'Tarjeta',       color: 'var(--boton-primario)' },
+  transferencia: { icono: '🏦', label: 'Transferencia', color: '#f5a623' },
 };
 
 const GraficaMetodoPago = ({ desde, hasta }) => {
   const [datos, setDatos] = useState([]);
+  const [hoverIdx, setHoverIdx] = useState(null);
 
   useEffect(() => {
     if (!desde || !hasta) return;
@@ -22,42 +22,92 @@ const GraficaMetodoPago = ({ desde, hasta }) => {
     return () => { cancelado = true; };
   }, [desde, hasta]);
 
-  if (datos.length === 0) return null;
+  const procesados = useMemo(() => {
+    const total = datos.reduce((a, d) => a + Number(d.total), 0);
+    return datos.map(d => {
+      const monto = Number(d.total) || 0;
+      const meta = META[d.metodo_pago] || { icono: '💰', label: d.metodo_pago, color: 'var(--boton-secundario)' };
+      return {
+        clave: d.metodo_pago,
+        ...meta,
+        monto,
+        pct: total > 0 ? (monto / total) * 100 : 0,
+        ventas: Number(d.num_ventas) || 0,
+      };
+    });
+  }, [datos]);
 
-  const totalGeneral = datos.reduce((a, d) => a + Number(d.total), 0);
+  if (procesados.length === 0) return null;
+
+  const maxMonto = Math.max(...procesados.map(d => d.monto), 1);
+  const mejorIdx = procesados.reduce((mi, d, i) => d.monto > procesados[mi].monto ? i : mi, 0);
+  const activo = hoverIdx != null ? procesados[hoverIdx] : null;
+  const totalGeneral = procesados.reduce((a, d) => a + d.monto, 0);
 
   return (
     <div className="gmp-card">
       <h3 className="gmp-titulo">Métodos de pago</h3>
-      <div className="gmp-contenido">
-        {/* Barras */}
-        <div className="gmp-barras">
-          {datos.map(d => {
-            const total = Number(d.total);
-            const pct = totalGeneral > 0 ? (total / totalGeneral) * 100 : 0;
-            return (
-              <div key={d.metodo_pago} className="gmp-fila">
-                <span className="gmp-icono">{ICONOS[d.metodo_pago] || '💰'}</span>
-                <span className="gmp-label">
-                  {d.metodo_pago.charAt(0).toUpperCase() + d.metodo_pago.slice(1)}
-                </span>
-                <div className="gmp-barra-wrap">
-                  <div
-                    className="gmp-barra"
-                    style={{
-                      width: `${Math.max(pct, 2)}%`,
-                      background: COLORES[d.metodo_pago] || 'var(--boton-secundario)',
-                    }}
-                  />
+      <div className="gmp-barras">
+        {procesados.map((d, i) => {
+          const pct = (d.monto / maxMonto) * 100;
+          const esMejor = i === mejorIdx && d.monto > 0;
+          const esActivo = hoverIdx === i;
+          return (
+            <div
+              key={d.clave}
+              className={`gmp-col${esActivo ? ' gmp-col--activo' : ''}`}
+              onMouseEnter={() => setHoverIdx(i)}
+              onMouseLeave={() => setHoverIdx(null)}
+            >
+              {esActivo && (
+                <div className="gmp-tooltip" role="tooltip">
+                  <div className="gmp-tt-titulo">{d.icono} {d.label}</div>
+                  <div className="gmp-tt-fila">
+                    <span>Total</span>
+                    <strong>${d.monto.toFixed(2)}</strong>
+                  </div>
+                  <div className="gmp-tt-fila">
+                    <span>Porcentaje</span>
+                    <strong>{d.pct.toFixed(1)}%</strong>
+                  </div>
+                  <div className="gmp-tt-fila">
+                    <span>Num. ventas</span>
+                    <strong>{d.ventas}</strong>
+                  </div>
+                  <div className="gmp-tt-fila">
+                    <span>Promedio</span>
+                    <strong>${d.ventas > 0 ? (d.monto / d.ventas).toFixed(2) : '0.00'}</strong>
+                  </div>
                 </div>
-                <span className="gmp-pct">{pct.toFixed(1)}%</span>
-                <span className="gmp-monto">${total.toLocaleString('es-MX', { minimumFractionDigits: 0 })}</span>
-                <span className="gmp-ventas">{d.num_ventas} vta{Number(d.num_ventas) !== 1 ? 's' : ''}</span>
+              )}
+              <div className="gmp-barra-wrap">
+                <div
+                  className={`gmp-barra${esMejor ? ' gmp-barra--mejor' : ''}${esActivo ? ' gmp-barra--activo' : ''}`}
+                  style={{
+                    height: `${Math.max(pct, 2)}%`,
+                    background: d.color,
+                  }}
+                />
               </div>
-            );
-          })}
-        </div>
+              <span className="gmp-valor">
+                {d.monto > 0
+                  ? `$${d.monto >= 1000 ? `${(d.monto/1000).toFixed(1)}k` : Math.round(d.monto)}`
+                  : '—'}
+              </span>
+              <span className="gmp-label-icono">
+                <span className="gmp-icono" aria-hidden="true">{d.icono}</span>
+                <span className={`gmp-label${esMejor ? ' gmp-label--mejor' : ''}`}>{d.label}</span>
+              </span>
+              {esMejor && <span className="gmp-crown">★</span>}
+            </div>
+          );
+        })}
       </div>
+      <p className="gmp-nota">
+        {activo
+          ? `${activo.label}: $${activo.monto.toFixed(2)} · ${activo.pct.toFixed(1)}% · ${activo.ventas} venta(s)`
+          : `Total: $${totalGeneral.toFixed(2)} · ${procesados.reduce((a, d) => a + d.ventas, 0)} ventas`}
+      </p>
     </div>
   );
 };

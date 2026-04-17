@@ -143,14 +143,6 @@ const Faltantes = () => {
     return lista;
   }, [productos, busquedaDebounced, filtro, categoriaSel]);
 
-  // Top vendidos del mes (todos, tengan stock o no)
-  const mejoresVendidos = useMemo(() =>
-    [...productos]
-      .filter(p => (p.vendidos_mes || 0) > 0)
-      .sort((a, b) => (b.vendidos_mes || 0) - (a.vendidos_mes || 0))
-      .slice(0, 8),
-    [productos]
-  );
 
   // Categorías únicas para el filtro de pills
   const categorias = useMemo(() => {
@@ -415,28 +407,6 @@ const Faltantes = () => {
         </div>
       )}
 
-      {/* ── Mejores vendidos (sugerencias) ── */}
-      {mejoresVendidos.length > 0 && (
-        <div className="falt-recomendaciones">
-          <p className="falt-rec-titulo">🔥 Más vendidos del mes — asegura tener stock:</p>
-          <div className="falt-rec-lista">
-            {mejoresVendidos.map(p => (
-              <div key={p.id} className="falt-rec-item">
-                <div className="falt-rec-info">
-                  <span className="falt-rec-nombre">{p.nombre}</span>
-                  {Number(p.stock) === 0 && <span className="falt-rec-badge falt-rec-badge--rojo">❌ Sin stock</span>}
-                  {Number(p.stock) > 0 && Number(p.stock) <= 5 && <span className="falt-rec-badge falt-rec-badge--naranja">⚠️ Poco</span>}
-                </div>
-                <div className="falt-rec-actions">
-                  <span className="falt-rec-ventas">{p.vendidos_mes} vendidos</span>
-                  <button className="falt-rec-btn" onClick={() => agregarALista(p)} title="Agregar a lista de compras">📋</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* ── Búsqueda + Filtro categoría ── */}
       <div className="falt-controles">
         <input
@@ -484,6 +454,9 @@ const Faltantes = () => {
 
                   <div className="falt-card-body">
                     <p className="falt-card-nombre">{p.nombre}</p>
+                    {p.descripcion && p.descripcion !== 'Sin descripcion' && (
+                      <p className="falt-card-desc">{p.descripcion}</p>
+                    )}
                     {p.codigo && <p className="falt-card-codigo">#{p.codigo}</p>}
                     {p.categoria && p.categoria !== 'General' && (
                       <span className="falt-card-cat">{p.categoria}</span>

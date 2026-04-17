@@ -232,3 +232,146 @@ exports.obtenerVentasPorFecha = async (req, res, next) => {
     next(error);
   }
 };
+
+// ── Helper: verificar contraseña admin ──
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const verificarAdmin = async (password) => {
+  if (!password || typeof password !== 'string') return false;
+  const hash = process.env.ACCESS_PASSWORD_HASH;
+  const plain = process.env.ACCESS_PASSWORD;
+  if (!hash && !plain) return false;
+  if (hash) return bcrypt.compare(password, hash);
+  // Comparación constant-time
+  const a = Buffer.from(String(password));
+  const b = Buffer.from(String(plain));
+  if (a.length !== b.length) { crypto.timingSafeEqual(a, a); return false; }
+  return crypto.timingSafeEqual(a, b);
+};
+
+// ── EDITAR VENTA (método pago, descuento) — requiere password admin ──
+exports.editarVenta = async (req, res, next) => {
+  const { id } = req.params;
+  const { metodo_pago, password } = req.body || {};
+
+  if (!id || isNaN(parseInt(id, 10))) {
+    return res.status(400).json({ error: 'ID de venta inválido' });
+  }
+
+  // Verificar admin
+  const esAdmin = await verificarAdmin(password);
+  if (!esAdmin) {
+    return res.status(401).json({ error: 'Contraseña de administrador incorrecta' });
+  }
+
+  const metodosValidos = ['efectivo', 'tarjeta', 'transferencia'];
+  if (metodo_pago && !metodosValidos.includes(metodo_pago)) {
+    return res.status(400).json({ error: 'Método de pago inválido' });
+  }
+
+  try {
+    // Solo permitir editar ventas del mismo día (seguridad contable)
+    const venta = await pool.query(
+      `SELECT id, metodo_pago FROM ventas WHERE id = $1`,
+      [parseInt(id, 10)]
+    );
+    if (venta.rowCount === 0) {
+      return res.status(404).json({ error: 'Venta no encontrada' });
+    }
+
+    // Actualizar método de pago
+    const campos = [];
+    const valores = [];
+    let idx = 1;
+
+    if (metodo_pago) {
+      campos.push(`metodo_pago = $${idx++}`);
+      valores.push(metodo_pago);
+    }
+
+    if (campos.length === 0) {
+      return res.status(400).json({ error: 'No hay campos para actualizar' });
+    }
+
+    valores.push(parseInt(id, 10));
+    const result = await pool.query(
+      `UPDATE ventas SET ${campos.join(', ')} WHERE id = $${idx} RETURNING *`,
+      valores
+    );
+
+    res.json({
+      mensaje: 'Venta actualizada',
+      venta: result.rows[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── ANULAR VENTA (devuelve stock de todos los productos) — requiere password admin ──
+exports.anularVenta = async (req, res, next) => {
+  const { id } = req.params;
+  const { password } = req.body || {};
+
+  if (!id || isNaN(parseInt(id, 10))) {
+    return res.status(400).json({ error: 'ID de venta inválido' });
+  }
+
+  // Verificar admin
+  const esAdmin = await verificarAdmin(password);
+  if (!esAdmin) {
+    return res.status(401).json({ error: 'Contraseña de administrador incorrecta' });
+  }
+
+  const ventaId = parseInt(id, 10);
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Verificar que la venta existe
+    const venta = await client.query(
+      'SELECT id, total FROM ventas WHERE id = $1 FOR UPDATE',
+      [ventaId]
+    );
+    if (venta.rowCount === 0) {
+      throw { status: 404, message: 'Venta no encontrada' };
+    }
+
+    // Obtener productos de la venta para devolver stock
+    const detalles = await client.query(
+      'SELECT nombre, cantidad FROM detalle_venta WHERE venta_id = $1',
+      [ventaId]
+    );
+
+    // Devolver stock de cada producto (buscar por nombre ya que no hay FK por id)
+    for (const d of detalles.rows) {
+      await client.query(
+        `UPDATE productos SET stock = stock + $1
+         WHERE nombre = $2`,
+        [d.cantidad, d.nombre]
+      );
+    }
+
+    // Eliminar detalles y la venta
+    await client.query('DELETE FROM detalle_venta WHERE venta_id = $1', [ventaId]);
+    await client.query('DELETE FROM ventas WHERE id = $1', [ventaId]);
+
+    await client.query('COMMIT');
+
+    res.json({
+      mensaje: 'Venta anulada y stock devuelto',
+      venta_id: ventaId,
+      productos_devueltos: detalles.rows.length,
+      total_devuelto: parseFloat(venta.rows[0].total)
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    if (error.status) {
+      return res.status(error.status).json({ error: error.message });
+    }
+    next(error);
+  } finally {
+    client.release();
+  }
+};

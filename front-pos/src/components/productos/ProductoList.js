@@ -76,7 +76,7 @@ const ProductoTable = ({ productos, onDelete, onEdit, onBarcode, onSubirImagen, 
       {menuAbierto && <div className="menu-overlay" onClick={() => setMenuAbierto(null)} />}
 
       <Tabla
-        columnas={['Imagen', 'Código', 'Nombre', 'Categoría', 'Costo', 'Precio', 'Margen', 'Stock', 'Status', 'Acciones']}
+        columnas={['Imagen', 'Código', 'Nombre', 'Descripción', 'Categoría', 'Costo', 'Precio', 'Margen', 'Stock', 'Status', 'Acciones']}
         datos={productos}
         renderFila={(producto) => {
           const margen = getMargen(producto.precio, producto.precio_costo);
@@ -96,6 +96,7 @@ const ProductoTable = ({ productos, onDelete, onEdit, onBarcode, onSubirImagen, 
             </td>
             <td>{producto.codigo}</td>
             <td className="td-nombre">{producto.nombre}</td>
+            <td className="td-desc">{producto.descripcion && producto.descripcion !== 'Sin descripcion' ? producto.descripcion : '—'}</td>
             <td><span className="badge-categoria">{producto.categoria || 'General'}</span></td>
             <td className="td-precio">${Number(producto.precio_costo || 0).toFixed(2)}</td>
             <td className="td-precio">${Number(producto.precio).toFixed(2)}</td>

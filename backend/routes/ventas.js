@@ -9,4 +9,8 @@ router.get('/hoy', ventasCon.obtenerVentasDelDia);       // Ventas de hoy
 router.get('/anteriores', ventasCon.obtenerVentasAnteriores); // Ventas anteriores
 router.get('/reportes', ventasCon.obtenerVentasPorFecha);     // Ventas por fechas
 
+// Modificar y anular ventas (requieren password admin)
+router.patch('/:id', ventasCon.editarVenta);             // Editar método de pago
+router.post('/:id/anular', ventasCon.anularVenta);       // Anular venta (devuelve stock)
+
 module.exports = router;

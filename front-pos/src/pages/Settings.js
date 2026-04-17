@@ -60,12 +60,26 @@ const Settings = () => {
 
   useEffect(() => { setForm({ ...settings }); }, [settings]);
 
+  // Guardado diferido para campos de texto (evita escribir a localStorage en cada tecla)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      // Solo guardar si hay cambios reales respecto a settings
+      const cambios = Object.keys(form).some(k => form[k] !== settings[k]);
+      if (cambios) updateSettings(form);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [form, settings, updateSettings]);
+
   const set = (key) => (e) => {
     const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const setToggle = (key) => (val) => setForm(prev => ({ ...prev, [key]: val }));
+  // Toggles y número: guardado inmediato (sin esperar debounce)
+  const setToggle = (key) => (val) => {
+    setForm(prev => ({ ...prev, [key]: val }));
+    updateSettings({ [key]: val });
+  };
 
   const handleGuardar = () => {
     updateSettings(form);

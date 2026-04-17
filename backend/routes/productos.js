@@ -76,6 +76,7 @@ router.get('/faltantes', productosCon.obtenerFaltantes);   // Productos con poco
 router.get('/categorias', productosCon.getCategorias);      // Categorías únicas
 router.post('/egresos', productosCon.agregarEgreso);        // Registrar egreso (legacy, usar /api/egresos)
 router.put('/resurtir/:id', productosCon.resurtirProducto); // Resurtir producto
+router.post('/resurtir-masivo', productosCon.resurtirMasivo); // Resurtir varios productos a la vez
 
 // ── Imagen de producto ─────────────────────────────────────────
 // POST /productos/:id/imagen — subir imagen

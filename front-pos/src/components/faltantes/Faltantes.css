@@ -4,7 +4,7 @@
   flex-direction: column;
   gap: 1.1rem;
   background: var(--fondo-principal);
-  min-height: calc(100vh - 62px);
+  min-height: 100vh;
 }
 
 /* ── Header ── */
@@ -168,6 +168,21 @@ button.falt-kpi {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.falt-rec-desc {
+  font-size: 0.68rem;
+  color: var(--texto-secundario);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.falt-rec-meta {
+  font-size: 0.65rem;
+  color: var(--texto-secundario);
+  opacity: 0.8;
+  white-space: nowrap;
 }
 
 .falt-rec-badge {
@@ -388,6 +403,16 @@ button.falt-kpi {
   color: var(--texto-principal);
   margin: 0;
   line-height: 1.2;
+}
+
+.falt-card-desc {
+  font-size: 0.72rem;
+  color: var(--texto-secundario);
+  margin: 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .falt-card-codigo {
