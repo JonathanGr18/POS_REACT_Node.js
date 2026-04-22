@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import api, { IMAGE_BASE_URL } from '../../services/api';
+import api, { getImageThumb } from '../../services/api';
 import ConfirmModal from '../ui/ConfirmModal';
 import Spinner from '../ui/Spinner';
 import { useToast } from '../ui/Toast';
 import useDebounce from '../../hooks/useDebounce';
+import useLocalStorageState from '../../hooks/useLocalStorageState';
 import { useSettings } from '../../context/SettingsContext';
 import './Faltantes.css';
 
@@ -24,7 +25,7 @@ const Faltantes = () => {
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const busquedaDebounced = useDebounce(busqueda, 400);
-  const [filtro, setFiltro] = useState('todos');
+  const [filtro, setFiltro] = useLocalStorageState('faltantes.filtro', 'todos');
   const [modalEliminar, setModalEliminar] = useState({ visible: false, id: null });
   const [eliminando, setEliminando] = useState(null);
 
@@ -33,7 +34,7 @@ const Faltantes = () => {
   const [resurtirCantidad, setResurtirCantidad] = useState('');
   const [resurtiendo, setResurtiendo] = useState(false);
   const [exportando, setExportando] = useState(false);
-  const [categoriaSel, setCategoriaSel] = useState('Todas');
+  const [categoriaSel, setCategoriaSel] = useLocalStorageState('faltantes.categoria', 'Todas');
   const [marcados, setMarcados] = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('falt_marcados') || '[]')); }
     catch { return new Set(); }
@@ -448,7 +449,7 @@ const Faltantes = () => {
                   {marcados.has(p.id) && <div className="falt-card-marcado-badge">🚩 Prioritario</div>}
                   {/* Imagen o placeholder */}
                   {p.imagen_url
-                    ? <img src={`${IMAGE_BASE_URL}${p.imagen_url}`} alt={p.nombre} className="falt-card-img" />
+                    ? <img src={getImageThumb(p.imagen_url)} alt={p.nombre} className="falt-card-img" loading="lazy" />
                     : <div className="falt-card-img-placeholder">📦</div>
                   }
 

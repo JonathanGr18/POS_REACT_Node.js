@@ -5,6 +5,7 @@ import { useToast } from '../components/ui/Toast';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import Spinner from '../components/ui/Spinner';
 import { FaPlus, FaThList, FaTh, FaMoneyBillWave, FaBoxes } from 'react-icons/fa';
+import useLocalStorageState from '../hooks/useLocalStorageState';
 
 // Componentes
 import FiltrosProducto from '../components/productos/FiltroProductos';
@@ -25,7 +26,7 @@ const Productos = () => {
   const [modalEliminar, setModalEliminar] = useState({ visible: false, id: null });
   const [pagina, setPagina] = useState(1);
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [vistaGrid, setVistaGrid] = useState(false);
+  const [vistaGrid, setVistaGrid] = useLocalStorageState('productos.vistaGrid', false);
   const [mostrarEgresos, setMostrarEgresos] = useState(false);
   const [mostrarResurtir, setMostrarResurtir] = useState(false);
 

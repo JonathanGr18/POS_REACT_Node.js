@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { useSettings } from '../../context/SettingsContext';
 import { useToast } from '../ui/Toast';
 import EditarVentaModal from '../ventas/EditarVentaModal';
 import './TicketPreviewModal.css';
+
+// Carga dinámica de html2canvas (evita problemas de interop ESM/CJS con webpack)
+let _html2canvasPromise = null;
+const loadHtml2Canvas = () => {
+  if (!_html2canvasPromise) {
+    _html2canvasPromise = import('html2canvas').then(mod => mod.default || mod);
+  }
+  return _html2canvasPromise;
+};
 
 const TicketPreviewModal = ({ venta, onCerrar, onVentaModificada }) => {
   const { settings } = useSettings();
@@ -38,138 +47,148 @@ const TicketPreviewModal = ({ venta, onCerrar, onVentaModificada }) => {
   const anchoTicket = tamano === '58mm' ? '200px' : '272px';
 
   const generarTexto = () => {
+    // Formato amigable para WhatsApp/Email: líneas cortas, emojis sutiles
+    const sep = '━━━━━━━━━━━━━━━';
     const lineas = [
-      `*${EMPRESA.nombre}*`,
+      `🧾 *${EMPRESA.nombre}*`,
       EMPRESA.direccion,
       EMPRESA.colonia,
-      EMPRESA.whatsapp,
-      '--------------------------------',
-      `Folio: ${folio}`,
+      `📱 ${EMPRESA.whatsapp}`,
+      sep,
+      `Folio: *${folio}*`,
       `Fecha: ${fecha}`,
       `Pago: ${venta.metodo_pago || 'efectivo'}`,
-      '--------------------------------',
+      sep,
       ...(venta.productos || []).map(
-        p => `${p.cantidad}x ${p.producto}  $${(p.precio * p.cantidad).toFixed(2)}`
+        p => `• ${p.cantidad}× ${p.producto} — $${(p.precio * p.cantidad).toFixed(2)}`
       ),
-      '--------------------------------',
+      sep,
     ];
     if (descuento > 0) lineas.push(`Descuento: -$${descuento.toFixed(2)}`);
-    lineas.push(`TOTAL: $${total.toFixed(2)}`);
+    lineas.push(`*TOTAL: $${total.toFixed(2)}*`);
     if (montoRecibido > 0) {
-      lineas.push(`Pago: $${montoRecibido.toFixed(2)}`);
+      lineas.push(`Recibido: $${montoRecibido.toFixed(2)}`);
       lineas.push(`Cambio: $${cambio.toFixed(2)}`);
     }
-    lineas.push('--------------------------------');
+    lineas.push(sep);
     if (EMPRESA.rfc) lineas.push(`RFC: ${EMPRESA.rfc}`);
-    lineas.push(EMPRESA.footer || '¡Gracias por su compra!');
+    lineas.push(`✨ ${EMPRESA.footer || '¡Gracias por su compra!'}`);
     return lineas.join('\n');
   };
 
-  const handleImprimir = () => {
-    // Abrir ventana limpia con solo el ticket (evita imprimir toda la app)
-    const ticketEl = document.getElementById('ticket-print-area');
-    if (!ticketEl) return;
+  const [procesandoImg, setProcesandoImg] = useState(false);
 
-    const ventana = window.open('', '_blank', 'width=400,height=600');
-    if (!ventana) {
-      addToast('El navegador bloqueó la ventana. Permite pop-ups para imprimir.', 'aviso');
-      return;
-    }
-
-    ventana.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Ticket ${folio}</title>
-        <style>
-          body { margin: 0; padding: 10px; font-family: 'Courier New', monospace; }
-          @page { margin: 5mm; size: auto; }
-        </style>
-      </head>
-      <body>${ticketEl.innerHTML}</body>
-      </html>
-    `);
-    ventana.document.close();
-    ventana.focus();
-    setTimeout(() => {
-      ventana.print();
-      ventana.close();
-    }, 300);
+  // Captura el ticket como imagen (idéntico al preview)
+  const capturarTicket = async () => {
+    const el = document.getElementById('ticket-print-area');
+    if (!el) throw new Error('Ticket no encontrado');
+    const html2canvas = await loadHtml2Canvas();
+    const canvas = await html2canvas(el, {
+      backgroundColor: '#ffffff',
+      scale: 2,           // retina para nitidez
+      useCORS: true,
+      logging: false,
+    });
+    return canvas;
   };
 
-  const handlePDF = () => {
-    const anchoMM = tamano === '58mm' ? 58 : 80;
-    const doc = new jsPDF({ unit: 'mm', format: [anchoMM, 200] });
-    const margen = 4;
-    let y = 8;
+  // Imprimir usando imagen rasterizada (pixel-perfect con el preview)
+  const handleImprimir = async () => {
+    setProcesandoImg(true);
+    try {
+      const canvas = await capturarTicket();
+      const anchoMM = tamano === '58mm' ? '58mm' : '80mm';
+      const dataUrl = canvas.toDataURL('image/png');
 
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text(EMPRESA.nombre, anchoMM / 2, y, { align: 'center' });
-    y += 5;
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text(EMPRESA.direccion, anchoMM / 2, y, { align: 'center' }); y += 4;
-    doc.text(EMPRESA.colonia, anchoMM / 2, y, { align: 'center' }); y += 4;
-    doc.text(EMPRESA.whatsapp, anchoMM / 2, y, { align: 'center' }); y += 5;
+      const ventana = window.open('', '_blank', 'width=400,height=600');
+      if (!ventana) {
+        addToast('El navegador bloqueó la ventana. Permite pop-ups para imprimir.', 'aviso');
+        return;
+      }
 
-    doc.setFontSize(8);
-    doc.text(`Folio: ${folio}`, margen, y); y += 4;
-    doc.text(`Fecha: ${fecha}`, margen, y); y += 5;
-
-    autoTable(doc, {
-      startY: y,
-      margin: { left: margen, right: margen },
-      head: [['Cant', 'Producto', 'P.Unit', 'Subtotal']],
-      body: (venta.productos || []).map(p => [
-        p.cantidad,
-        p.producto,
-        `$${parseFloat(p.precio).toFixed(2)}`,
-        `$${(p.precio * p.cantidad).toFixed(2)}`,
-      ]),
-      styles: { fontSize: 7, cellPadding: 1 },
-      headStyles: { fillColor: [50, 50, 50], fontSize: 7 },
-      columnStyles: { 3: { halign: 'right' } },
-    });
-
-    y = doc.lastAutoTable.finalY + 4;
-    doc.setFontSize(8);
-    if (descuento > 0) {
-      doc.text(`Descuento: -$${descuento.toFixed(2)}`, anchoMM - margen, y, { align: 'right' }); y += 4;
+      ventana.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Ticket ${folio}</title>
+          <style>
+            @page { margin: 2mm; size: ${anchoMM} auto; }
+            html, body { margin: 0; padding: 0; background: #fff; }
+            img { display: block; width: 100%; height: auto; }
+          </style>
+        </head>
+        <body>
+          <img src="${dataUrl}" alt="Ticket" />
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                setTimeout(function() { window.close(); }, 300);
+              }, 150);
+            };
+          </script>
+        </body>
+        </html>
+      `);
+      ventana.document.close();
+      ventana.focus();
+    } catch (err) {
+      addToast('Error al imprimir: ' + err.message, 'error');
+    } finally {
+      setProcesandoImg(false);
     }
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.text(`TOTAL: $${total.toFixed(2)}`, anchoMM - margen, y, { align: 'right' }); y += 5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    if (venta.metodo_pago) {
-      doc.text(`Método: ${venta.metodo_pago}`, margen, y); y += 4;
-    }
-    if (montoRecibido > 0) {
-      doc.text(`Pago: $${montoRecibido.toFixed(2)}`, anchoMM - margen, y, { align: 'right' }); y += 4;
-      doc.text(`Cambio: $${cambio.toFixed(2)}`, anchoMM - margen, y, { align: 'right' }); y += 5;
-    }
-    doc.setFontSize(7);
-    if (EMPRESA.rfc) {
-      doc.text(`RFC: ${EMPRESA.rfc}`, anchoMM / 2, y + 2, { align: 'center' }); y += 4;
-    }
-    doc.text(EMPRESA.footer || '¡Gracias por su compra!', anchoMM / 2, y + 2, { align: 'center' });
+  };
 
-    doc.save(`ticket-${folio}.pdf`);
+  // PDF pixel-perfect: rasteriza el preview y lo inserta en el PDF
+  const handlePDF = async () => {
+    setProcesandoImg(true);
+    try {
+      const canvas = await capturarTicket();
+      const anchoMM = tamano === '58mm' ? 58 : 80;
+      const altoMM = (canvas.height / canvas.width) * anchoMM;
+      const doc = new jsPDF({ unit: 'mm', format: [anchoMM, altoMM + 4] });
+      const imgData = canvas.toDataURL('image/png');
+      doc.addImage(imgData, 'PNG', 0, 2, anchoMM, altoMM);
+      doc.save(`ticket-${folio}.pdf`);
+      addToast('PDF generado', 'exito');
+    } catch (err) {
+      addToast('Error al generar PDF: ' + err.message, 'error');
+    } finally {
+      setProcesandoImg(false);
+    }
+  };
+
+  // Descarga el ticket como imagen PNG (para adjuntar manualmente a WhatsApp/Email)
+  const handleImagen = async () => {
+    setProcesandoImg(true);
+    try {
+      const canvas = await capturarTicket();
+      const link = document.createElement('a');
+      link.download = `ticket-${folio}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      addToast('Imagen descargada. Ya puedes adjuntarla a WhatsApp/Email.', 'exito');
+    } catch (err) {
+      addToast('Error al generar imagen: ' + err.message, 'error');
+    } finally {
+      setProcesandoImg(false);
+    }
   };
 
   const handleWhatsApp = () => {
     const texto = generarTexto();
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+    addToast('Tip: usa "🖼 Imagen" para adjuntar el ticket gráfico en WhatsApp', 'aviso');
   };
 
   const handleEmail = () => {
     const asunto = `Ticket ${folio} - ${EMPRESA.nombre}`;
     const cuerpo = generarTexto().replace(/\*/g, '');
     window.open(`mailto:?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`);
+    addToast('Tip: usa "🖼 Imagen" para adjuntar el ticket gráfico al correo', 'aviso');
   };
 
-  return (
+  return createPortal(
     <div className="tpm-overlay" onClick={onCerrar}>
       <div className="tpm-box" onClick={e => e.stopPropagation()}>
 
@@ -239,14 +258,19 @@ const TicketPreviewModal = ({ venta, onCerrar, onVentaModificada }) => {
         </div>
 
         <div className="tpm-acciones">
-          <button className="btn btn-primary" onClick={handleImprimir}>🖨️ Imprimir</button>
-          <button className="btn btn-secondary" onClick={handlePDF}>📄 PDF</button>
+          <button className="btn btn-primary" onClick={handleImprimir} disabled={procesandoImg}>🖨️ Imprimir</button>
+          <button className="btn btn-secondary" onClick={handlePDF} disabled={procesandoImg}>
+            {procesandoImg ? '...' : '📄 PDF'}
+          </button>
+          <button className="tpm-btn-img" onClick={handleImagen} disabled={procesandoImg}>
+            {procesandoImg ? '...' : '🖼 Imagen'}
+          </button>
           <button className="tpm-btn-wa" onClick={handleWhatsApp}>💬 WhatsApp</button>
           <button className="tpm-btn-email" onClick={handleEmail}>✉️ Email</button>
           {venta.id && (
             <button className="tpm-btn-editar" onClick={() => setEditarVisible(true)}>✏️ Modificar</button>
           )}
-          <button className="btn" onClick={onCerrar}>Cerrar</button>
+          <button className="tpm-btn-cerrar" onClick={onCerrar}>✕ Cerrar</button>
         </div>
 
         {editarVisible && (
@@ -262,7 +286,8 @@ const TicketPreviewModal = ({ venta, onCerrar, onVentaModificada }) => {
         )}
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

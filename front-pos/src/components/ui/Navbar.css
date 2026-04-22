@@ -15,6 +15,11 @@
   transition: padding-left 0.22s ease;
 }
 
+/* Al expandir el nav, el contenido también se corre para que no quede oculto */
+.navbar--expandido ~ .app-main {
+  padding-left: var(--nav-w-expandido);
+}
+
 .navbar {
   position: fixed;
   left: 0;
@@ -144,10 +149,18 @@
   transform: translateY(-50%);
   width: 26px;
   height: 26px;
+  z-index: 2;
+  color: inherit;
+}
+
+.navbar-label {
+  position: relative;
+  z-index: 2;
 }
 
 .navbar-links a:hover {
-  background-color: var(--navbar-hover);
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--navbar-texto);
 }
 
 /* Activo COLAPSADO: píldora que envuelve solo el ícono (no el anchor completo) */
@@ -212,6 +225,7 @@
 
 .navbar-bell svg,
 .btn-dark-toggle > span[aria-hidden="true"] {
+  z-index: 2;
   position: absolute;
   left: 6px;
   top: 50%;
@@ -227,8 +241,10 @@
 
 .navbar-bell:hover,
 .btn-dark-toggle:hover {
-  background: var(--navbar-hover);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--navbar-texto);
 }
+
 
 /* ── Etiquetas: fade-in. El overflow: hidden del anchor ya las oculta. ── */
 .navbar-label,

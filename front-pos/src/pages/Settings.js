@@ -3,6 +3,7 @@ import { useSettings } from '../context/SettingsContext';
 import { useReminders } from '../context/RemindersContext';
 import { useToast } from '../components/ui/Toast';
 import useDarkMode from '../hooks/useDarkMode';
+import BackupSection from '../components/settings/BackupSection';
 import './Settings.css';
 
 const Section = ({ titulo, children }) => (
@@ -204,6 +205,11 @@ const Settings = () => {
             )}
           </div>
         )}
+      </Section>
+
+      {/* ── Respaldos ── */}
+      <Section titulo="💾 Respaldos de Base de Datos">
+        <BackupSection />
       </Section>
 
       {/* ── Apariencia ── */}

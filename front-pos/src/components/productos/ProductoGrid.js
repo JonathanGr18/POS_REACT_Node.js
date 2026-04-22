@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaEdit, FaBoxOpen, FaBarcode } from 'react-icons/fa';
-import { IMAGE_BASE_URL } from '../../services/api';
+import { getImageThumb } from '../../services/api';
 import './ProductoGrid.css';
 
 const ProductoGrid = ({ productos, onEdit, onBarcode, onResurtir }) => {
@@ -34,7 +34,7 @@ const ProductoGrid = ({ productos, onEdit, onBarcode, onResurtir }) => {
           <div key={p.id} className={`grid-card ${getStatusClass(p.stock, stockMin)}`}>
             <div className="grid-card-img-wrap">
               {p.imagen_url ? (
-                <img src={`${IMAGE_BASE_URL}${p.imagen_url}`} alt={p.nombre} className="grid-card-img" />
+                <img src={getImageThumb(p.imagen_url)} alt={p.nombre} className="grid-card-img" loading="lazy" />
               ) : (
                 <div className="grid-card-img-placeholder">📦</div>
               )}

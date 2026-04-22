@@ -60,8 +60,6 @@ const Navbar = () => {
 
   return (
     <>
-      <a href="#main" className="skip-link">Saltar al contenido</a>
-
       {/* Overlay para cerrar haciendo click afuera cuando está expandido */}
       {expandido && <div className="navbar-overlay" onClick={() => setExpandido(false)} />}
 

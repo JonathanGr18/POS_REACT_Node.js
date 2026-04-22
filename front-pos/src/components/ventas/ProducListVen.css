@@ -356,3 +356,52 @@
   font-size: 1.5rem;
   color: var(--fondo-borde);
 }
+
+/* ── Paginación ── */
+.plv-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 4px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.plv-pag-btn {
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 6px;
+  background: var(--fondo-tarjeta);
+  color: var(--texto-principal);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.plv-pag-btn:hover:not(:disabled) {
+  background: var(--boton-primario);
+  border-color: var(--boton-primario);
+  color: #fff;
+}
+
+.plv-pag-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.plv-pag-info {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+}
+
+.plv-pag-total {
+  color: var(--texto-secundario);
+  font-weight: 500;
+}

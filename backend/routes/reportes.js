@@ -17,5 +17,6 @@ router.get('/horas', reportesCon.horasPico);
 router.get('/top-productos', reportesCon.topProductos);
 router.get('/resumen-periodo', reportesCon.resumenPeriodo);
 router.get('/dias-filtrado', reportesCon.obtenerResumenDiasFiltrado);
+router.get('/devoluciones', reportesCon.obtenerDevoluciones);
 
 module.exports = router;

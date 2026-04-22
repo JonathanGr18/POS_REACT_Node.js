@@ -437,3 +437,34 @@ exports.obtenerResumenDiasFiltrado = async (req, res, next) => {
     res.json(rows);
   } catch (err) { next(err); }
 };
+
+// ── Devoluciones: resumen + lista por período ──
+// GET /reportes/devoluciones?desde=YYYY-MM-DD&hasta=YYYY-MM-DD
+exports.obtenerDevoluciones = async (req, res, next) => {
+  const { desde, hasta } = req.query;
+  const err = validarRango(desde, hasta);
+  if (err) return res.status(400).json({ error: err });
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT
+         id, venta_id, tipo, monto::float AS monto,
+         productos, motivo, fecha
+       FROM devoluciones
+       WHERE (fecha AT TIME ZONE 'America/Mexico_City')::date BETWEEN $1 AND $2
+       ORDER BY fecha DESC`,
+      [desde, hasta]
+    );
+
+    const resumen = {
+      total_devoluciones: rows.length,
+      monto_total: rows.reduce((a, r) => a + (Number(r.monto) || 0), 0),
+      anulaciones: rows.filter(r => r.tipo === 'anulacion').length,
+      ediciones: rows.filter(r => r.tipo === 'edicion').length,
+    };
+
+    res.json({ resumen, lista: rows });
+  } catch (e) {
+    next(e);
+  }
+};

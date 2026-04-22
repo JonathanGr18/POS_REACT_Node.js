@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { useToast } from '../components/ui/Toast';
+import useLocalStorageState from '../hooks/useLocalStorageState';
 import './Reportes.css';
 import KPIsReportes from '../components/reportes/KPIsReportes';
 import GraficaPeriodo from '../components/reportes/GraficaPeriodo';
@@ -9,6 +10,7 @@ import TicketPreviewModal from '../components/reportes/TicketPreviewModal';
 import GraficaDiaSemana from '../components/reportes/GraficaDiaSemana';
 import GraficaHoraPico from '../components/reportes/GraficaHoraPico';
 import GraficaMetodoPago from '../components/reportes/GraficaMetodoPago';
+import DevolucionesWidget from '../components/reportes/DevolucionesWidget';
 
 const PERIODOS = [
   { label: '7 días',  value: '7d',  dias: 7   },
@@ -41,7 +43,7 @@ const calcularRango = (periodo) => {
 
 const Reportes = () => {
   const { addToast } = useToast();
-  const [periodo, setPeriodo] = useState('30d');
+  const [periodo, setPeriodo] = useLocalStorageState('reportes.periodo', '30d');
   const [customDesde, setCustomDesde] = useState('');
   const [customHasta, setCustomHasta] = useState('');
   const [desde, setDesde] = useState('');
@@ -483,6 +485,9 @@ const Reportes = () => {
         <GraficaMetodoPago desde={desde} hasta={hasta} />
         <GraficaHoraPico desde={desde} hasta={hasta} />
       </div>
+
+      {/* ── Devoluciones: widget compacto ── */}
+      <DevolucionesWidget desde={desde} hasta={hasta} />
 
       {/* ── Días sin ventas ── */}
       {diasSinVentas.length > 0 && (

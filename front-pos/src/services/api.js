@@ -36,4 +36,18 @@ api.interceptors.response.use(
 
 export const IMAGE_BASE_URL = BASE.replace(/\/api$/, '');
 
+// Devuelve la URL del thumbnail si la imagen fue procesada a .webp; si no, devuelve la original.
+export const getImageThumb = (imagenUrl) => {
+  if (!imagenUrl) return null;
+  if (imagenUrl.endsWith('.webp') && !imagenUrl.endsWith('.thumb.webp')) {
+    return `${IMAGE_BASE_URL}${imagenUrl.replace(/\.webp$/i, '.thumb.webp')}`;
+  }
+  return `${IMAGE_BASE_URL}${imagenUrl}`;
+};
+
+export const getImageFull = (imagenUrl) => {
+  if (!imagenUrl) return null;
+  return `${IMAGE_BASE_URL}${imagenUrl}`;
+};
+
 export default api;

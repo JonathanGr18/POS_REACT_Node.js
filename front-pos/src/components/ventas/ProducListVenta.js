@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import useDebounce from '../../hooks/useDebounce';
-import { IMAGE_BASE_URL } from '../../services/api';
+import { getImageThumb } from '../../services/api';
 import './ProducListVen.css';
+
+const POR_PAGINA = 30;
 
 const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], categorias = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +13,7 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
   const [vistaLista, setVistaLista] = useState(false);
   const [buscarPor, setBuscarPor] = useState('todo'); // 'todo' | 'codigo' | 'nombre' | 'descripcion' | 'precio'
   const [selIndex, setSelIndex] = useState(0);
+  const [pagina, setPagina] = useState(1);
   const gridRef = useRef(null);
   const [numCols, setNumCols] = useState(1);
 
@@ -40,6 +43,7 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
   const productosFiltrados = useMemo(() => {
     const valor = searchTermDebounced.trim().toLowerCase();
     const esNumero = valor !== '' && !isNaN(Number(valor));
+    const tokens = valor.split(/\s+/).filter(Boolean);
 
     const filtrados = productos
       .filter(p => Number(p.stock) > 0)
@@ -49,25 +53,46 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
         const codigoStr = String(p.codigo ?? '').toLowerCase();
         const nombre = (p.nombre || '').toLowerCase();
         const desc = (p.descripcion || '').toLowerCase();
+        const nombreDesc = `${nombre} ${desc}`;
 
         switch (buscarPor) {
           case 'codigo':
             return Number(p.codigo) === Number(valor) || codigoStr.startsWith(valor) || codigoStr.includes(valor);
           case 'nombre':
-            return nombre.includes(valor);
+            return tokens.every(t => nombre.includes(t));
           case 'descripcion':
-            return desc.includes(valor);
+            return tokens.every(t => desc.includes(t));
           case 'precio':
             return String(Number(p.precio).toFixed(2)).includes(valor) || String(Number(p.precio)).startsWith(valor);
-          default: // 'todo'
-            if (esNumero) {
+          default: // 'todo': busca cada palabra en nombre+descripción+código (permite "cartulina verde")
+            if (esNumero && tokens.length === 1) {
               return Number(p.codigo) === Number(valor) || codigoStr.startsWith(valor);
             }
-            return nombre.includes(valor) || desc.includes(valor) || codigoStr.includes(valor);
+            const full = `${nombreDesc} ${codigoStr}`;
+            return tokens.every(t => full.includes(t));
         }
       });
 
+    // Cuando hay búsqueda, ranking: nombre primero > descripción después
+    const score = (p) => {
+      if (!tokens.length) return 0;
+      const n = (p.nombre || '').toLowerCase();
+      const d = (p.descripcion || '').toLowerCase();
+      let s = 0;
+      if (tokens[0] && n.startsWith(tokens[0])) s += 1000;
+      tokens.forEach(t => {
+        if (n.includes(t)) s += 100;
+        if (d.includes(t)) s += 10;
+      });
+      return s;
+    };
+
     return [...filtrados].sort((a, b) => {
+      // Si hay búsqueda, el score domina (siempre prioriza nombre > desc)
+      if (valor && buscarPor !== 'codigo' && buscarPor !== 'precio') {
+        const sb = score(b) - score(a);
+        if (sb !== 0) return sb;
+      }
       if (orden === 'nombre')      return (a.nombre || '').localeCompare(b.nombre || '');
       if (orden === 'precio_asc')  return Number(a.precio) - Number(b.precio);
       if (orden === 'precio_desc') return Number(b.precio) - Number(a.precio);
@@ -75,13 +100,26 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
     });
   }, [productos, searchTermDebounced, orden, categoriaFiltro, buscarPor]);
 
+  // Paginación
+  const totalPaginas = Math.max(1, Math.ceil(productosFiltrados.length / POR_PAGINA));
+  const inicio = (pagina - 1) * POR_PAGINA;
+  const paginados = productosFiltrados.slice(inicio, inicio + POR_PAGINA);
+
+  // Resetear página y selección al cambiar búsqueda/filtros/orden
+  useEffect(() => { setPagina(1); setSelIndex(0); }, [searchTermDebounced, categoriaFiltro, buscarPor, orden]);
+
+  // Clampar página si cambia el total
+  useEffect(() => {
+    if (pagina > totalPaginas) setPagina(totalPaginas);
+  }, [totalPaginas, pagina]);
+
   // Resetear selección al cambiar búsqueda
   useEffect(() => { setSelIndex(0); }, [searchTermDebounced]);
 
-  // Mover selección clampeada al rango válido
+  // Mover selección clampeada al rango válido (dentro de la página actual)
   const mover = useCallback((delta) => {
-    setSelIndex(i => Math.max(0, Math.min(i + delta, productosFiltrados.length - 1)));
-  }, [productosFiltrados.length]);
+    setSelIndex(i => Math.max(0, Math.min(i + delta, paginados.length - 1)));
+  }, [paginados.length]);
 
   const handleKeyDown = (e) => {
     // Escape: limpiar búsqueda y quitar focus
@@ -103,7 +141,7 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
       const valor = searchTerm.trim().toLowerCase();
       if (valor) {
         // Usar el item seleccionado actualmente en la lista filtrada
-        const match = productosFiltrados[selIndex] || productosFiltrados[0];
+        const match = paginados[selIndex] || paginados[0] || productosFiltrados[0];
         if (match) {
           const stockDisponible = Number(match.stock) - (carritoMap[match.id] || 0);
           if (stockDisponible > 0) {
@@ -121,7 +159,7 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
       return;
     }
 
-    const total = productosFiltrados.length;
+    const total = paginados.length;
     if (total === 0) return;
 
     // En vista lista: flechas arriba/abajo mueven de 1 en 1
@@ -149,7 +187,7 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
 
   // Auto-scroll al item seleccionado con flechas
   const scrollToSelected = (idx) => {
-    const clamped = Math.max(0, Math.min(idx, productosFiltrados.length - 1));
+    const clamped = Math.max(0, Math.min(idx, paginados.length - 1));
     setTimeout(() => {
       const el = gridRef.current?.querySelector(`[data-idx="${clamped}"]`);
       if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -213,8 +251,8 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
       {/* ── Vista GRID (cards) ── */}
       {!vistaLista && (
         <div className="plv-grid" ref={gridRef}>
-          {productosFiltrados.length > 0 ? (
-            productosFiltrados.map((producto, idx) => {
+          {paginados.length > 0 ? (
+            paginados.map((producto, idx) => {
               const qty = carritoMap[producto.id] || 0;
               const stockVisual = producto.stock - qty;
               const agotado = stockVisual <= 0;
@@ -228,7 +266,7 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
                 >
                   {qty > 0 && <span className="plv-qty-badge">{qty}</span>}
                   {producto.imagen_url
-                    ? <img src={`${IMAGE_BASE_URL}${producto.imagen_url}`} alt="" className="plv-card-img" loading="lazy" decoding="async" />
+                    ? <img src={getImageThumb(producto.imagen_url)} alt="" className="plv-card-img" loading="lazy" decoding="async" />
                     : <div className="plv-card-img-placeholder" aria-hidden="true">📦</div>
                   }
                   <p className="plv-nombre">{producto.nombre}</p>
@@ -264,8 +302,8 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
               </tr>
             </thead>
             <tbody>
-              {productosFiltrados.length > 0 ? (
-                productosFiltrados.map((producto, idx) => {
+              {paginados.length > 0 ? (
+                paginados.map((producto, idx) => {
                   const qty = carritoMap[producto.id] || 0;
                   const stockVisual = producto.stock - qty;
                   const agotado = stockVisual <= 0;
@@ -280,7 +318,7 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
                       <td className="plv-td-id">{producto.codigo}</td>
                       <td className="plv-td-img">
                         {producto.imagen_url
-                          ? <img src={`${IMAGE_BASE_URL}${producto.imagen_url}`} alt="" className="plv-mini-img" loading="lazy" />
+                          ? <img src={getImageThumb(producto.imagen_url)} alt="" className="plv-mini-img" loading="lazy" />
                           : <span className="plv-mini-placeholder">📦</span>
                         }
                         {qty > 0 && <span className="plv-fila-badge">{qty}</span>}
@@ -297,6 +335,28 @@ const ProductoListVenta = ({ productos = [], onSelect, itemsEnCarrito = [], cate
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ── Paginación ── */}
+      {totalPaginas > 1 && (
+        <div className="plv-paginacion">
+          <button
+            type="button"
+            className="plv-pag-btn"
+            disabled={pagina === 1}
+            onClick={() => setPagina(p => Math.max(1, p - 1))}
+          >‹</button>
+          <span className="plv-pag-info">
+            {pagina} / {totalPaginas}
+            <span className="plv-pag-total"> · {productosFiltrados.length} prod.</span>
+          </span>
+          <button
+            type="button"
+            className="plv-pag-btn"
+            disabled={pagina === totalPaginas}
+            onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+          >›</button>
         </div>
       )}
     </div>

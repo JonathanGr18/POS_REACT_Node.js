@@ -15,47 +15,189 @@
   padding: 0.5rem 0.75rem;
 }
 
-/* ── Historial colapsable: compacto al fondo ── */
-.ventas-historial-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-shrink: 0;
-  padding: 0 1rem 0.3rem;
+/* ── Botón flotante para abrir el historial ── */
+.ventas-historial-fab {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  padding: 10px 18px;
+  background: var(--boton-primario);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(153, 103, 206, 0.35);
+  transition: all 0.15s;
+  z-index: 50;
+}
+.ventas-historial-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(153, 103, 206, 0.45);
 }
 
-.toggle-button {
-  padding: 0.35rem 0.8rem;
+/* ── Drawer lateral derecho: historial de ventas ── */
+.ventas-historial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 199;
+  animation: histFadeIn 0.18s ease;
+}
+
+@keyframes histFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ventas-historial-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 40vw;
+  min-width: 440px;
+  max-width: 95vw;
   background: var(--fondo-tarjeta);
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.18);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 720px) {
+  .ventas-historial-drawer {
+    width: 100vw;
+    min-width: 0;
+  }
+}
+
+.ventas-historial-drawer--abierto {
+  transform: translateX(0);
+}
+
+.ventas-historial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--fondo-borde);
+  flex-shrink: 0;
+}
+
+.ventas-historial-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--boton-primario);
+  font-weight: 700;
+}
+
+.ventas-historial-close {
+  background: transparent;
+  border: none;
+  color: var(--texto-secundario);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.ventas-historial-close:hover {
+  background: var(--fondo-principal);
+  color: var(--texto-principal);
+}
+
+.ventas-historial-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--fondo-borde);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px 14px;
+  background: transparent;
   border: 1.5px solid var(--fondo-borde);
   color: var(--texto-principal);
   border-radius: 8px;
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.toggle-button:hover {
+.tab-btn--activo {
+  background: var(--boton-primario);
+  border-color: var(--boton-primario);
+  color: #fff;
+}
+
+.tab-btn:hover:not(.tab-btn--activo) {
   border-color: var(--boton-primario);
   color: var(--boton-primario);
 }
 
-.ventas-historial-section {
-  background: var(--fondo-tarjeta);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  max-height: 250px;
+.ventas-historial-body {
+  flex: 1;
   overflow-y: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  flex-shrink: 0;
-  margin: 0 1rem 0.5rem;
+  padding: 8px 14px 16px;
 }
 
-.ventas-historial-section h3 {
-  margin: 0 0 0.5rem;
-  font-size: 0.9rem;
+/* Paginación del historial */
+.ventas-historial-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--fondo-borde);
+  flex-shrink: 0;
+  background: var(--fondo-tarjeta);
+}
+
+.hist-pag-btn {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--fondo-borde);
+  border-radius: 8px;
+  background: var(--fondo-tarjeta);
   color: var(--texto-principal);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.hist-pag-btn:hover:not(:disabled) {
+  background: var(--boton-primario);
+  border-color: var(--boton-primario);
+  color: #fff;
+}
+
+.hist-pag-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.hist-pag-info {
+  font-size: 0.78rem;
+  color: var(--texto-principal);
+}
+
+.hist-pag-info strong {
+  color: var(--boton-primario);
+  font-weight: 800;
+}
+
+.hist-pag-total {
+  color: var(--texto-secundario);
+  font-size: 0.72rem;
+  margin-left: 4px;
 }
 
 /* ── Tablet: scroll libre ── */

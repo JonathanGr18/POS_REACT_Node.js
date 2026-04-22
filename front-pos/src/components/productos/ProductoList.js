@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { FaEdit, FaTrash, FaBarcode, FaCamera, FaTimes, FaEllipsisV, FaBoxOpen } from 'react-icons/fa';
-import { IMAGE_BASE_URL } from '../../services/api';
+import { getImageThumb } from '../../services/api';
 import Tabla from "../ui/Tabla";
 import './ProductoList.css';
 
@@ -8,6 +8,7 @@ const ProductoTable = ({ productos, onDelete, onEdit, onBarcode, onSubirImagen, 
   const fileInputRef = useRef(null);
   const pendingIdRef = useRef(null);
   const [menuAbierto, setMenuAbierto] = useState(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [resurtirId, setResurtirId] = useState(null);
   const [resurtirCantidad, setResurtirCantidad] = useState('');
 
@@ -51,8 +52,19 @@ const ProductoTable = ({ productos, onDelete, onEdit, onBarcode, onSubirImagen, 
     setResurtirCantidad('');
   };
 
-  const toggleMenu = (id) => {
-    setMenuAbierto(menuAbierto === id ? null : id);
+  const toggleMenu = (id, e) => {
+    if (menuAbierto === id) {
+      setMenuAbierto(null);
+    } else {
+      // Posicionar el menú debajo y alineado a la derecha del botón
+      const rect = e.currentTarget.getBoundingClientRect();
+      const menuWidth = 200;
+      setMenuPos({
+        top: rect.bottom + 4,
+        left: Math.max(8, rect.right - menuWidth),
+      });
+      setMenuAbierto(id);
+    }
     setResurtirId(null);
     setResurtirCantidad('');
   };
@@ -86,9 +98,10 @@ const ProductoTable = ({ productos, onDelete, onEdit, onBarcode, onSubirImagen, 
             <td className="td-imagen">
               {producto.imagen_url ? (
                 <img
-                  src={`${IMAGE_BASE_URL}${producto.imagen_url}`}
+                  src={getImageThumb(producto.imagen_url)}
                   alt={producto.nombre}
                   className="producto-img"
+                  loading="lazy"
                 />
               ) : (
                 <span className="producto-img-placeholder">📦</span>
@@ -165,7 +178,7 @@ const ProductoTable = ({ productos, onDelete, onEdit, onBarcode, onSubirImagen, 
                   <div className="menu-contextual-wrap">
                     <button
                       className="btn-icon btn-menu"
-                      onClick={() => toggleMenu(producto.id)}
+                      onClick={(e) => toggleMenu(producto.id, e)}
                       aria-label={`Más opciones para ${producto.nombre}`}
                       aria-haspopup="menu"
                       aria-expanded={menuAbierto === producto.id}
@@ -174,7 +187,10 @@ const ProductoTable = ({ productos, onDelete, onEdit, onBarcode, onSubirImagen, 
                       <FaEllipsisV aria-hidden="true" />
                     </button>
                     {menuAbierto === producto.id && (
-                      <div className="menu-contextual">
+                      <div
+                        className="menu-contextual"
+                        style={{ top: menuPos.top, left: menuPos.left }}
+                      >
                         <button onClick={() => { onBarcode?.(producto); setMenuAbierto(null); }}>
                           <FaBarcode /> Código de barras
                         </button>

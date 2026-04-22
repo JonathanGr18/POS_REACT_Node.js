@@ -2,7 +2,6 @@
   width: 100%;
   border-collapse: collapse;
   border-radius: 8px;
-  overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   background-color: var(--fondo-tarjeta);
   min-width: 700px;
@@ -225,15 +224,13 @@
 }
 
 .menu-contextual {
-  position: absolute;
-  right: 0;
-  top: 100%;
+  position: fixed;
   background: var(--fondo-tarjeta);
   border: 1px solid var(--fondo-borde);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  z-index: 100;
-  min-width: 180px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  z-index: 500;
+  min-width: 200px;
   padding: 4px 0;
   animation: menuFadeIn 0.15s ease;
 }

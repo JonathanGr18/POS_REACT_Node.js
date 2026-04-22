@@ -1,0 +1,290 @@
+.dev-card {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-left: 4px solid #f39c12;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.dev-card--vacio {
+  border-left-color: var(--fondo-borde);
+  opacity: 0.82;
+}
+
+.dev-vacio {
+  margin: 0;
+  padding: 8px 14px 12px;
+  font-size: 0.75rem;
+  color: var(--texto-secundario);
+  font-style: italic;
+  text-align: center;
+  border-top: 1px solid var(--fondo-borde);
+}
+
+.dev-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.dev-header:hover {
+  background: var(--fondo-principal);
+}
+
+.dev-titulo {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--texto-principal);
+}
+
+.dev-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dev-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.dev-chip--total {
+  background: #f39c12;
+  color: #fff;
+  min-width: 26px;
+  justify-content: center;
+}
+
+.dev-chip--anulacion {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.dev-chip--edicion {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.dev-monto {
+  font-weight: 800;
+  color: #e67e22;
+  font-size: 0.92rem;
+}
+
+.dev-chevron {
+  font-size: 0.7rem;
+  color: var(--texto-secundario);
+}
+
+.dev-body {
+  padding: 0 14px 12px;
+  border-top: 1px solid var(--fondo-borde);
+}
+
+.dev-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 0 8px;
+}
+
+.dev-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.dev-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--fondo-principal);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+
+.dev-item-izq {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.dev-tipo {
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+.dev-tipo.anulacion { color: #e74c3c; }
+.dev-tipo.edicion   { color: #3498db; }
+
+.dev-venta {
+  color: var(--texto-principal);
+  font-weight: 600;
+}
+
+.dev-fecha {
+  font-size: 0.7rem;
+  color: var(--texto-secundario);
+}
+
+.dev-item-der {
+  display: flex;
+  align-items: center;
+}
+
+.dev-item-monto {
+  font-weight: 800;
+  color: var(--texto-principal);
+  white-space: nowrap;
+}
+
+.dev-item-principal {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.dev-item-chevron {
+  margin-left: 8px;
+  color: var(--texto-secundario);
+  font-size: 0.7rem;
+}
+
+.dev-motivo {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  color: var(--texto-secundario);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Detalle expandido ── */
+.dev-detalle {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--fondo-borde);
+}
+
+.dev-detalle h5 {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  color: var(--texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.dev-detalle ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Diff antes / después (ediciones) */
+.dev-diff {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.dev-diff-col {
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--fondo-borde);
+  border-radius: 6px;
+  padding: 8px 10px;
+  min-width: 0;
+}
+
+.dev-diff-col:first-child {
+  border-left: 3px solid rgba(231, 76, 60, 0.5);
+}
+
+.dev-diff-col:last-child {
+  border-left: 3px solid rgba(39, 174, 96, 0.5);
+}
+
+.dev-diff-col li {
+  font-size: 0.74rem;
+  color: var(--texto-principal);
+  padding: 2px 0;
+  border-bottom: 1px solid var(--fondo-borde);
+}
+.dev-diff-col li:last-child { border-bottom: none; }
+
+.dev-diff-flecha {
+  align-self: center;
+  font-size: 1.2rem;
+  color: var(--boton-primario);
+  font-weight: 700;
+}
+
+/* Productos anulados */
+.dev-productos-anulados ul li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  padding: 4px 10px;
+  background: var(--fondo-tarjeta);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  border-left: 3px solid rgba(231, 76, 60, 0.5);
+}
+
+.dev-prod-cant {
+  font-weight: 700;
+  color: var(--boton-primario);
+}
+
+.dev-prod-nombre {
+  color: var(--texto-principal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dev-prod-precio {
+  font-size: 0.72rem;
+  color: var(--texto-secundario);
+  white-space: nowrap;
+}
+
+.dev-sin-detalle {
+  font-size: 0.74rem;
+  color: var(--texto-secundario);
+  font-style: italic;
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .dev-diff {
+    grid-template-columns: 1fr;
+  }
+  .dev-diff-flecha { display: none; }
+}

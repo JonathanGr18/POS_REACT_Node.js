@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const compression = require('compression');
 const app = express();
 require('dotenv').config();
 
@@ -16,6 +17,8 @@ const listaComprasRoutes = require('./routes/listaCompras');
 const iaRoutes = require('./routes/ia');
 const egresosRoutes = require('./routes/egresos');
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
+const { iniciarBackupProgramado } = require('./services/backup');
 
 // Middlewares
 app.use(cors({
@@ -29,6 +32,12 @@ app.use(cors({
 // Seguridad: headers HTTP
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
+// Compresión gzip/brotli (reduce ~70% tamaño de responses JSON/HTML)
+app.use(compression({
+  level: 6,             // buen balance CPU/tamaño
+  threshold: 1024,      // solo comprime > 1KB (evita overhead en respuestas chicas)
 }));
 
 // Rate limiting general: 200 requests por 15 minutos por IP
@@ -131,6 +140,7 @@ app.use('/api/lista-compras', listaComprasRoutes);
 app.use('/api/ia', iaRoutes);
 app.use('/api/egresos', egresosRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Manejo centralizado de errores
 app.use((err, req, res, next) => {
@@ -153,4 +163,6 @@ app.use((req, res) => {
 const PORT = process.env.SERVER_PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor en puerto ${PORT}`);
+  // Arranca el job de respaldo programado (24h, rotación)
+  try { iniciarBackupProgramado(); } catch (err) { console.error('[backup] No se pudo iniciar:', err.message); }
 });

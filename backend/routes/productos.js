@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 const rateLimit = require('express-rate-limit');
 const pool = require('../config/db');
 const productosCon = require('../controllers/productosCon');
@@ -50,6 +51,36 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
+// ── Procesamiento de imagen: convierte a WebP en 2 tamaños ──
+// Devuelve { fullPath, thumbPath, fullUrl, thumbUrl } o lanza error.
+const procesarImagen = async (origenPath, uploadsDir) => {
+  // Base sin extensión, ej: 1775245917149-726030
+  const baseName = path.basename(origenPath, path.extname(origenPath));
+  const fullName = `${baseName}.webp`;
+  const thumbName = `${baseName}.thumb.webp`;
+  const fullDest = path.join(uploadsDir, fullName);
+  const thumbDest = path.join(uploadsDir, thumbName);
+
+  // Versión completa para modal/detalle: máx 800x800, fit inside (preserva aspect)
+  await sharp(origenPath)
+    .rotate() // respeta EXIF
+    .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toFile(fullDest);
+
+  // Thumbnail para grillas/catálogos: 200x200 cover (recorte cuadrado)
+  await sharp(origenPath)
+    .rotate()
+    .resize(200, 200, { fit: 'cover' })
+    .webp({ quality: 75 })
+    .toFile(thumbDest);
+
+  return {
+    fullUrl: `/uploads/productos/${fullName}`,
+    thumbUrl: `/uploads/productos/${thumbName}`,
+  };
+};
+
 // Verificar magic bytes (MIME real) despues del upload
 const verificarMagicBytes = (filepath) => {
   try {
@@ -78,6 +109,24 @@ router.post('/egresos', productosCon.agregarEgreso);        // Registrar egreso 
 router.put('/resurtir/:id', productosCon.resurtirProducto); // Resurtir producto
 router.post('/resurtir-masivo', productosCon.resurtirMasivo); // Resurtir varios productos a la vez
 
+// Dada una URL tipo /uploads/productos/base.webp devuelve la del thumbnail
+const thumbPathFromFull = (fullUrl) => {
+  if (!fullUrl) return null;
+  // Inserta .thumb antes de la extensión (sólo para webp generados por nosotros)
+  return fullUrl.replace(/\.webp$/i, '.thumb.webp');
+};
+
+// Borrado seguro de full + thumb
+const borrarImagenDisco = (imagenUrl) => {
+  if (!imagenUrl) return;
+  const fullPath = path.join(__dirname, '..', imagenUrl);
+  fs.unlink(fullPath, () => {});
+  const thumbUrl = thumbPathFromFull(imagenUrl);
+  if (thumbUrl && thumbUrl !== imagenUrl) {
+    fs.unlink(path.join(__dirname, '..', thumbUrl), () => {});
+  }
+};
+
 // ── Imagen de producto ─────────────────────────────────────────
 // POST /productos/:id/imagen — subir imagen
 router.post('/:id/imagen', limiterUploads, upload.single('imagen'), async (req, res, next) => {
@@ -92,28 +141,43 @@ router.post('/:id/imagen', limiterUploads, upload.single('imagen'), async (req, 
     return res.status(400).json({ error: 'Archivo no es una imagen válida' });
   }
 
-  const imagen_url = `/uploads/productos/${req.file.filename}`;
+  const uploadsDir = path.dirname(req.file.path);
+  let fullUrl, thumbUrl;
+
+  // Procesar a WebP (full + thumb)
+  try {
+    const procesado = await procesarImagen(req.file.path, uploadsDir);
+    fullUrl = procesado.fullUrl;
+    thumbUrl = procesado.thumbUrl;
+  } catch (err) {
+    fs.unlink(req.file.path, () => {});
+    console.error('[sharp] Error procesando imagen:', err?.message);
+    return res.status(400).json({ error: 'No se pudo procesar la imagen' });
+  }
+
+  // Borrar original (ya tenemos full + thumb en WebP)
+  fs.unlink(req.file.path, () => {});
 
   try {
     // Obtener imagen anterior para eliminarla
     const prev = await pool.query('SELECT imagen_url FROM productos WHERE id = $1', [id]);
-    if (prev.rowCount === 0) return res.status(404).json({ error: 'Producto no encontrado' });
+    if (prev.rowCount === 0) {
+      // Limpiar los webp recién generados
+      borrarImagenDisco(fullUrl);
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
 
     const prevUrl = prev.rows[0].imagen_url;
 
-    // Guardar nueva URL en DB
-    await pool.query('UPDATE productos SET imagen_url = $1 WHERE id = $2', [imagen_url, id]);
+    // Guardar nueva URL en DB (URL de la versión full; thumb se deriva por convención)
+    await pool.query('UPDATE productos SET imagen_url = $1 WHERE id = $2', [fullUrl, id]);
 
-    // Eliminar archivo anterior si existía
-    if (prevUrl) {
-      const prevPath = path.join(__dirname, '..', prevUrl);
-      fs.unlink(prevPath, () => {}); // silencioso si no existe
-    }
+    // Eliminar archivos anteriores (full + thumb)
+    borrarImagenDisco(prevUrl);
 
-    res.json({ imagen_url });
+    res.json({ imagen_url: fullUrl, imagen_thumb_url: thumbUrl });
   } catch (err) {
-    // Si hay error de DB, borrar el archivo recién subido
-    fs.unlink(req.file.path, () => {});
+    borrarImagenDisco(fullUrl);
     next(err);
   }
 });
@@ -124,19 +188,12 @@ router.delete('/:id/imagen', async (req, res, next) => {
   if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
 
   try {
-    // Obtener URL actual antes de limpiarla
     const sel = await pool.query('SELECT imagen_url FROM productos WHERE id = $1', [id]);
     if (sel.rowCount === 0) return res.status(404).json({ error: 'Producto no encontrado' });
 
     const prevUrl = sel.rows[0].imagen_url;
-
     await pool.query('UPDATE productos SET imagen_url = NULL WHERE id = $1', [id]);
-
-    // Eliminar archivo físico si existía
-    if (prevUrl) {
-      const prevPath = path.join(__dirname, '..', prevUrl);
-      fs.unlink(prevPath, () => {}); // silencioso si no existe
-    }
+    borrarImagenDisco(prevUrl); // limpia full + thumb
 
     res.json({ mensaje: 'Imagen eliminada' });
   } catch (err) {

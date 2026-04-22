@@ -1,28 +1,30 @@
 .venta-list-container {
-  background: var(--fondo-tarjeta);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  background: transparent;
+  padding: 0;
   color: var(--texto-principal);
   display: flex;
   flex-direction: column;
   width: 100%;
 }
 
-.venta-list-container h3 {
-  font-size: 20px;
-  border-bottom: 2px solid var(--boton-primario);
-  padding-bottom: 5px;
-  margin-bottom: 1rem;
+.venta-list-container .tabla-responsive {
+  overflow-x: hidden;
+  width: 100%;
 }
 
-/* Aplicado directamente a la tabla */
 .venta-table {
   width: 100%;
-  min-width: 700px;
   border-collapse: collapse;
-  table-layout: auto;
+  table-layout: fixed;
+  font-size: 0.78rem;
 }
+
+/* Columnas con anchos fijos para que todo quepa en el drawer de 40vw */
+.venta-table col.col-id       { width: 48px; }
+.venta-table col.col-prod     { width: auto; }
+.venta-table col.col-total    { width: 70px; }
+.venta-table col.col-fecha    { width: 80px; }
+.venta-table col.col-acciones { width: 96px; }
 
 .venta-table thead {
   position: sticky;
@@ -32,20 +34,49 @@
   z-index: 1;
 }
 
-.venta-table th,
+.venta-table th {
+  padding: 8px 6px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
 .venta-table td {
-  padding: 12px 10px;
+  padding: 8px 6px;
   border-bottom: 1px solid var(--fondo-borde);
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* La columna Productos mantiene alineación izquierda (lista) */
+.venta-table td.col-prod-cell,
+.venta-table th.col-prod-head {
   text-align: left;
-  vertical-align: top;
+}
+
+.venta-table tbody tr:hover {
+  background: var(--fondo-principal);
 }
 
 .venta-productos {
   list-style: none;
-  padding-left: 1rem;
+  padding-left: 0;
   margin: 0;
-  font-size: 14px;
+  font-size: 0.75rem;
   color: var(--texto-secundario);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.venta-productos li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .no-data {
@@ -55,57 +86,45 @@
   padding: 20px;
 }
 
+/* Acciones (botones ticket + editar) en la misma celda, stack vertical */
+.venta-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
 .btn-imprimir,
-.btn-guardar {
-  padding: 6px 10px;
-  margin: 2px;
-  font-size: 13px;
+.btn-editar {
+  padding: 5px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  width: 84px;
 }
 
 .btn-imprimir {
-  background-color: var(--boton-secundario);
+  background-color: var(--boton-primario);
   color: white;
 }
 
 .btn-imprimir:hover {
-  background-color: var(--boton-secundario-hover);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
-.btn-guardar {
-  background-color: var(--boton-primario);
+.btn-editar {
+  background-color: transparent;
+  color: #f39c12;
+  border: 1.5px solid #f39c12;
+}
+
+.btn-editar:hover {
+  background-color: #f39c12;
   color: white;
-}
-
-.btn-guardar:hover {
-  background-color: var(--boton-primario-hover);
-}
-
-.btn-ver {
-  background-color: var(--boton-secundario);
-  color: white;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-right: 5px;
-}
-
-.btn-ver:hover {
-  background-color: var(--boton-secundario-hover);
-}
-
-.btn-enviar {
-  background-color: var(--boton-primario);
-  color: white;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.btn-enviar:hover {
-  background-color: var(--boton-primario-hover);
+  transform: translateY(-1px);
 }

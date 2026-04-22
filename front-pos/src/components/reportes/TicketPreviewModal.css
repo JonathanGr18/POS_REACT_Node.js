@@ -207,6 +207,38 @@
 
 .tpm-btn-editar:hover { opacity: 0.85; }
 
+.tpm-btn-img {
+  padding: 8px 14px;
+  background: #6c5ce7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.tpm-btn-img:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+.tpm-btn-img:disabled { opacity: 0.5; cursor: wait; }
+
+.tpm-btn-cerrar {
+  padding: 8px 16px;
+  background: var(--boton-peligro, #e74c3c);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.15s;
+  margin-left: auto;
+}
+
+.tpm-btn-cerrar:hover {
+  background: var(--boton-peligro-hover, #c0392b);
+  transform: translateY(-1px);
+}
+
 @media print {
   body * { visibility: hidden; }
   #ticket-print-area, #ticket-print-area * { visibility: visible; }

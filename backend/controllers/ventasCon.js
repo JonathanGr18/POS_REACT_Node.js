@@ -1,7 +1,19 @@
 const pool = require('../config/db');
 
 // Query auxiliar: obtiene ventas con sus productos en una sola query (elimina N+1)
-const queryVentasConProductos = async (whereClause, params) => {
+// Soporta paginación opcional: pasa { limit, offset } para obtener una página.
+const queryVentasConProductos = async (whereClause, params, opts = {}) => {
+  const { limit, offset } = opts;
+  let extra = '';
+  const paramsLocal = [...params];
+  if (Number.isInteger(limit) && limit > 0) {
+    paramsLocal.push(limit);
+    extra += ` LIMIT $${paramsLocal.length}`;
+  }
+  if (Number.isInteger(offset) && offset >= 0) {
+    paramsLocal.push(offset);
+    extra += ` OFFSET $${paramsLocal.length}`;
+  }
   const result = await pool.query(`
     SELECT
       v.id,
@@ -13,20 +25,43 @@ const queryVentasConProductos = async (whereClause, params) => {
       COALESCE(
         json_agg(
           json_build_object(
+            'id', dv.producto_id,
             'producto', dv.nombre,
+            'descripcion', p.descripcion,
             'cantidad', dv.cantidad,
             'precio', dv.precio
           )
+          ORDER BY dv.id
         ) FILTER (WHERE dv.id IS NOT NULL),
         '[]'
       ) AS productos
     FROM ventas v
     LEFT JOIN detalle_venta dv ON dv.venta_id = v.id
+    LEFT JOIN productos p      ON p.id       = dv.producto_id
     ${whereClause}
     GROUP BY v.id, v.fecha, v.total, v.descuento, v.monto_recibido, v.metodo_pago
     ORDER BY v.fecha DESC
-  `, params);
+    ${extra}
+  `, paramsLocal);
   return result.rows;
+};
+
+// Cuenta total de ventas que matchean el filtro (para paginación)
+const contarVentas = async (whereClause, params) => {
+  const { rows } = await pool.query(
+    `SELECT COUNT(*)::int AS total FROM ventas v ${whereClause}`,
+    params
+  );
+  return rows[0].total;
+};
+
+// Parsea y valida query params de paginación
+const parsePagination = (req, maxLimit = 100, defaultLimit = 30) => {
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  let limit = parseInt(req.query.limit, 10);
+  if (!Number.isInteger(limit) || limit <= 0) limit = defaultLimit;
+  if (limit > maxLimit) limit = maxLimit;
+  return { page, limit, offset: (page - 1) * limit };
 };
 
 // Helper: redondeo a centavos para evitar float precision
@@ -135,8 +170,8 @@ exports.registrarVenta = async (req, res, next) => {
     // Insertar detalles y actualizar stock con WHERE defensivo (anti-race)
     for (const p of productosValidados) {
       await client.query(
-        'INSERT INTO detalle_venta (venta_id, nombre, cantidad, precio) VALUES ($1, $2, $3, $4)',
-        [ventaId, p.nombre, p.cantidad, p.precio]
+        'INSERT INTO detalle_venta (venta_id, producto_id, nombre, cantidad, precio) VALUES ($1, $2, $3, $4, $5)',
+        [ventaId, p.id, p.nombre, p.cantidad, p.precio]
       );
       const updateResult = await client.query(
         'UPDATE productos SET stock = stock - $1 WHERE id = $2 AND stock >= $1',
@@ -178,30 +213,39 @@ exports.obtenerVentas = async (req, res, next) => {
   }
 };
 
-// Obtener ventas del día actual (TZ Mexico_City consistente con reportesCon)
+// Obtener ventas del día actual (TZ Mexico_City) — soporta paginado opcional
 exports.obtenerVentasDelDia = async (req, res, next) => {
   try {
-    const ventas = await queryVentasConProductos(
-      "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date",
-      []
-    );
+    const whereClause = "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date = (NOW() AT TIME ZONE 'America/Mexico_City')::date";
+    // Si viene ?page=, devuelve respuesta paginada; si no, compat: devuelve array plano
+    if (req.query.page != null || req.query.limit != null) {
+      const { page, limit, offset } = parsePagination(req);
+      const [ventas, total] = await Promise.all([
+        queryVentasConProductos(whereClause, [], { limit, offset }),
+        contarVentas(whereClause, []),
+      ]);
+      return res.json({ ventas, total, pagina: page, paginas: Math.max(1, Math.ceil(total / limit)), limit });
+    }
+    const ventas = await queryVentasConProductos(whereClause, []);
     res.json(ventas);
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 };
 
-// Obtener ventas anteriores a hoy
+// Obtener ventas anteriores a hoy — soporta paginado opcional
 exports.obtenerVentasAnteriores = async (req, res, next) => {
   try {
-    const ventas = await queryVentasConProductos(
-      "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date < (NOW() AT TIME ZONE 'America/Mexico_City')::date",
-      []
-    );
+    const whereClause = "WHERE (v.fecha AT TIME ZONE 'America/Mexico_City')::date < (NOW() AT TIME ZONE 'America/Mexico_City')::date";
+    if (req.query.page != null || req.query.limit != null) {
+      const { page, limit, offset } = parsePagination(req);
+      const [ventas, total] = await Promise.all([
+        queryVentasConProductos(whereClause, [], { limit, offset }),
+        contarVentas(whereClause, []),
+      ]);
+      return res.json({ ventas, total, pagina: page, paginas: Math.max(1, Math.ceil(total / limit)), limit });
+    }
+    const ventas = await queryVentasConProductos(whereClause, []);
     res.json(ventas);
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 };
 
 // Obtener ventas entre fechas (rango)
@@ -249,16 +293,18 @@ const verificarAdmin = async (password) => {
   return crypto.timingSafeEqual(a, b);
 };
 
-// ── EDITAR VENTA (método pago, descuento) — requiere password admin ──
+// ── EDITAR VENTA (productos + método pago + descuento) — requiere password admin ──
+// Body: { password, metodo_pago?, descuento?, productos?: [{id?, nombre, cantidad, precio}], motivo? }
+// Si viene `productos`, recalcula stock (delta por producto) y reemplaza detalle_venta.
 exports.editarVenta = async (req, res, next) => {
   const { id } = req.params;
-  const { metodo_pago, password } = req.body || {};
+  const { metodo_pago, descuento, productos, password, motivo } = req.body || {};
 
-  if (!id || isNaN(parseInt(id, 10))) {
+  const ventaId = parseInt(id, 10);
+  if (!id || isNaN(ventaId)) {
     return res.status(400).json({ error: 'ID de venta inválido' });
   }
 
-  // Verificar admin
   const esAdmin = await verificarAdmin(password);
   if (!esAdmin) {
     return res.status(401).json({ error: 'Contraseña de administrador incorrecta' });
@@ -269,49 +315,178 @@ exports.editarVenta = async (req, res, next) => {
     return res.status(400).json({ error: 'Método de pago inválido' });
   }
 
+  // Validar productos si se envía
+  let productosNuevos = null;
+  if (productos !== undefined) {
+    if (!Array.isArray(productos) || productos.length === 0) {
+      return res.status(400).json({ error: 'Debe haber al menos un producto en la venta' });
+    }
+    productosNuevos = [];
+    for (const p of productos) {
+      const cantidad = parseInt(p?.cantidad, 10);
+      const precio = parseFloat(p?.precio);
+      const nombre = typeof p?.nombre === 'string' ? p.nombre.trim() : null;
+      const pid = p?.id != null ? parseInt(p.id, 10) : null;
+      if (!nombre || !Number.isInteger(cantidad) || cantidad <= 0 || !isFinite(precio) || precio < 0) {
+        return res.status(400).json({ error: `Producto inválido: ${nombre || 'sin nombre'}` });
+      }
+      productosNuevos.push({ id: pid, nombre, cantidad, precio });
+    }
+  }
+
+  const client = await pool.connect();
   try {
-    // Solo permitir editar ventas del mismo día (seguridad contable)
-    const venta = await pool.query(
-      `SELECT id, metodo_pago FROM ventas WHERE id = $1`,
-      [parseInt(id, 10)]
+    await client.query('BEGIN');
+
+    // Lock la venta
+    const ventaRes = await client.query(
+      'SELECT id, total, descuento, metodo_pago FROM ventas WHERE id = $1 FOR UPDATE',
+      [ventaId]
     );
-    if (venta.rowCount === 0) {
-      return res.status(404).json({ error: 'Venta no encontrada' });
+    if (ventaRes.rowCount === 0) {
+      throw { status: 404, message: 'Venta no encontrada' };
+    }
+    const ventaPrev = ventaRes.rows[0];
+
+    // Snapshot previo de productos (para devoluciones + recálculo stock)
+    const detallePrev = await client.query(
+      'SELECT producto_id, nombre, cantidad, precio::float AS precio FROM detalle_venta WHERE venta_id = $1',
+      [ventaId]
+    );
+    // Clave compuesta: usa id cuando existe, sino "n:nombre"
+    const claveDe = (r) => r.producto_id != null ? `id:${r.producto_id}` : `n:${r.nombre}`;
+    const prevMap = {};  // clave → { cantidad, id, nombre }
+    detallePrev.rows.forEach(d => {
+      const k = claveDe(d);
+      if (!prevMap[k]) prevMap[k] = { cantidad: 0, id: d.producto_id, nombre: d.nombre };
+      prevMap[k].cantidad += Number(d.cantidad);
+    });
+
+    let nuevoTotal = Number(ventaPrev.total);
+    let nuevoDesc = Number(ventaPrev.descuento);
+
+    // Si cambian productos: recalcular stock con delta y reemplazar detalle
+    if (productosNuevos) {
+      const nuevoMap = {};
+      productosNuevos.forEach(p => {
+        const k = p.id != null ? `id:${p.id}` : `n:${p.nombre}`;
+        if (!nuevoMap[k]) nuevoMap[k] = { cantidad: 0, id: p.id, nombre: p.nombre };
+        nuevoMap[k].cantidad += p.cantidad;
+      });
+
+      // Todas las claves involucradas
+      const claves = new Set([...Object.keys(prevMap), ...Object.keys(nuevoMap)]);
+
+      for (const k of claves) {
+        const prev = prevMap[k] || { cantidad: 0 };
+        const next = nuevoMap[k] || { cantidad: 0 };
+        const delta = prev.cantidad - next.cantidad;
+        if (delta === 0) continue;
+
+        const prodId = next.id ?? prev.id;
+        const prodNombre = next.nombre ?? prev.nombre;
+
+        // Ajuste: delta positivo = stock sube (producto salió); delta negativo = stock baja
+        let upd;
+        if (prodId != null) {
+          // Match preciso por id (handles same-name products correctly)
+          upd = await client.query(
+            `UPDATE productos
+               SET stock = stock + $1
+               WHERE id = $2
+               ${delta < 0 ? 'AND stock >= $3' : ''}
+               RETURNING id`,
+            delta < 0 ? [delta, prodId, -delta] : [delta, prodId]
+          );
+        } else {
+          // Legacy fallback: match por nombre
+          upd = await client.query(
+            `UPDATE productos
+               SET stock = stock + $1
+               WHERE nombre = $2
+               ${delta < 0 ? 'AND stock >= $3' : ''}
+               RETURNING id`,
+            delta < 0 ? [delta, prodNombre, -delta] : [delta, prodNombre]
+          );
+        }
+        if (upd.rowCount === 0) {
+          if (delta < 0) {
+            throw { status: 409, message: `Stock insuficiente para "${prodNombre}" (faltan ${-delta})` };
+          }
+          console.warn(`[editarVenta] Producto "${prodNombre}" no se ajustó en stock`);
+        }
+      }
+
+      // Reemplazar detalle_venta
+      await client.query('DELETE FROM detalle_venta WHERE venta_id = $1', [ventaId]);
+      for (const p of productosNuevos) {
+        await client.query(
+          'INSERT INTO detalle_venta (venta_id, producto_id, nombre, cantidad, precio) VALUES ($1, $2, $3, $4, $5)',
+          [ventaId, p.id, p.nombre, p.cantidad, p.precio]
+        );
+      }
+
+      // Recalcular total
+      const subtotal = productosNuevos.reduce((a, p) => a + p.precio * p.cantidad, 0);
+      if (descuento !== undefined) {
+        nuevoDesc = Math.max(0, parseFloat(descuento) || 0);
+      }
+      nuevoTotal = round2(Math.max(0, subtotal - nuevoDesc));
+    } else if (descuento !== undefined) {
+      // Solo actualiza descuento (sin recalcular productos)
+      nuevoDesc = Math.max(0, parseFloat(descuento) || 0);
     }
 
-    // Actualizar método de pago
-    const campos = [];
-    const valores = [];
-    let idx = 1;
-
+    // Actualizar venta
+    const campos = ['total = $1', 'descuento = $2'];
+    const valores = [nuevoTotal, nuevoDesc];
+    let idx = 3;
     if (metodo_pago) {
       campos.push(`metodo_pago = $${idx++}`);
       valores.push(metodo_pago);
     }
-
-    if (campos.length === 0) {
-      return res.status(400).json({ error: 'No hay campos para actualizar' });
-    }
-
-    valores.push(parseInt(id, 10));
-    const result = await pool.query(
-      `UPDATE ventas SET ${campos.join(', ')} WHERE id = $${idx} RETURNING *`,
+    valores.push(ventaId);
+    await client.query(
+      `UPDATE ventas SET ${campos.join(', ')} WHERE id = $${idx}`,
       valores
     );
 
+    // Registrar en devoluciones SI cambiaron productos o total (auditoría)
+    const huboCambioProductos = productosNuevos !== null;
+    const deltaTotal = round2(Number(ventaPrev.total) - nuevoTotal);
+    if (huboCambioProductos || deltaTotal !== 0) {
+      await client.query(
+        `INSERT INTO devoluciones (venta_id, tipo, monto, productos, motivo)
+         VALUES ($1, 'edicion', $2, $3::jsonb, $4)`,
+        [
+          ventaId,
+          deltaTotal, // positivo si se redujo el monto (devolución parcial), negativo si aumentó
+          JSON.stringify({ antes: detallePrev.rows, despues: productosNuevos }),
+          motivo || null,
+        ]
+      );
+    }
+
+    await client.query('COMMIT');
     res.json({
       mensaje: 'Venta actualizada',
-      venta: result.rows[0]
+      venta_id: ventaId,
+      total_nuevo: nuevoTotal,
+      delta_total: deltaTotal,
     });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    if (error.status) return res.status(error.status).json({ error: error.message });
     next(error);
+  } finally {
+    client.release();
   }
 };
 
-// ── ANULAR VENTA (devuelve stock de todos los productos) — requiere password admin ──
+// ── ANULAR VENTA (devuelve stock + registra en devoluciones) — requiere password admin ──
 exports.anularVenta = async (req, res, next) => {
   const { id } = req.params;
-  const { password } = req.body || {};
+  const { password, motivo } = req.body || {};
 
   if (!id || isNaN(parseInt(id, 10))) {
     return res.status(400).json({ error: 'ID de venta inválido' });
@@ -338,9 +513,9 @@ exports.anularVenta = async (req, res, next) => {
       throw { status: 404, message: 'Venta no encontrada' };
     }
 
-    // Obtener productos de la venta para devolver stock
+    // Obtener productos de la venta para devolver stock + snapshot
     const detalles = await client.query(
-      'SELECT nombre, cantidad FROM detalle_venta WHERE venta_id = $1',
+      'SELECT nombre, cantidad, precio::float AS precio FROM detalle_venta WHERE venta_id = $1',
       [ventaId]
     );
 
@@ -352,6 +527,18 @@ exports.anularVenta = async (req, res, next) => {
         [d.cantidad, d.nombre]
       );
     }
+
+    // Registrar en devoluciones ANTES de eliminar
+    await client.query(
+      `INSERT INTO devoluciones (venta_id, tipo, monto, productos, motivo)
+       VALUES ($1, 'anulacion', $2, $3::jsonb, $4)`,
+      [
+        ventaId,
+        parseFloat(venta.rows[0].total),
+        JSON.stringify(detalles.rows),
+        motivo || null,
+      ]
+    );
 
     // Eliminar detalles y la venta
     await client.query('DELETE FROM detalle_venta WHERE venta_id = $1', [ventaId]);
