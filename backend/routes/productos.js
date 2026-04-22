@@ -61,18 +61,18 @@ const procesarImagen = async (origenPath, uploadsDir) => {
   const fullDest = path.join(uploadsDir, fullName);
   const thumbDest = path.join(uploadsDir, thumbName);
 
-  // Versión completa para modal/detalle: máx 800x800, fit inside (preserva aspect)
+  // Versión completa para modal/detalle: máx 600x600, fit inside (preserva aspect)
   await sharp(origenPath)
     .rotate() // respeta EXIF
-    .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 82 })
+    .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 75 })
     .toFile(fullDest);
 
-  // Thumbnail para grillas/catálogos: 200x200 cover (recorte cuadrado)
+  // Thumbnail para grillas/catálogos: 150x150 cover (recorte cuadrado)
   await sharp(origenPath)
     .rotate()
-    .resize(200, 200, { fit: 'cover' })
-    .webp({ quality: 75 })
+    .resize(150, 150, { fit: 'cover' })
+    .webp({ quality: 65 })
     .toFile(thumbDest);
 
   return {
