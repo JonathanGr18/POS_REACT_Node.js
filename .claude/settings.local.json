@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(psql --version)",
+      "Bash(\"C:/Program Files/PostgreSQL/17/bin/psql.exe\" --version)",
+      "Bash(\"C:/Program Files/PostgreSQL/13/bin/psql.exe\" --version)",
+      "Bash(\"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"\\\\l\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"\\\\l\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"CREATE DATABASE papepos;\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -f \"C:/Pos_Pape/backend/backups/papepos_full.sql\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"\\\\dt\")",
+      "Bash(npm install *)",
+      "Bash(pm2 --version)",
+      "Bash(pm2 list *)",
+      "Bash(pm2 delete *)",
+      "Bash(npm run *)",
+      "Bash(pm2 start *)",
+      "Bash(pm2 logs *)",
+      "Bash(pm2 restart *)",
+      "Bash(pm2 save *)",
+      "Bash(pm2-startup install *)",
+      "Bash(pm2 status *)",
+      "Bash(xargs grep *)",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"\\\\d productos\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"SELECT id, nombre, categoria, precio FROM productos ORDER BY categoria, nombre LIMIT 80;\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"SELECT COUNT\\(*\\) FROM productos;\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"SELECT nombre FROM productos ORDER BY nombre;\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"SELECT DISTINCT categoria FROM productos ORDER BY categoria LIMIT 20;\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"SELECT * FROM tiendas;\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"SELECT DISTINCT categoria FROM productos;\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"SELECT column_name FROM information_schema.columns WHERE table_name='productos';\")",
+      "Bash(PGPASSWORD=1234 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h 127.0.0.1 -d papepos -c \"SELECT nombre FROM productos WHERE lower\\(nombre\\) LIKE '%arizona%';\")",
+      "PowerShell($env:PGPASSWORD = \"1234\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -d papepos -f \"c:\\\\Pos_Pape\\\\backend\\\\migrations\\\\add_detalle_producto_id.sql\" 2>&1; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -d papepos -f \"c:\\\\Pos_Pape\\\\backend\\\\migrations\\\\add_devoluciones.sql\" 2>&1; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -d papepos -f \"c:\\\\Pos_Pape\\\\backend\\\\migrations\\\\add_indices_extra.sql\" 2>&1)",
+      "PowerShell(pm2 restart pos-backend 2>&1)"
+    ]
+  }
+}
